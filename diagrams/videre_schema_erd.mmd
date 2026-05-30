@@ -3,6 +3,10 @@ erDiagram
     LOCATIONS ||--o{ INCIDENTS : locates
     INCIDENTS ||--o{ MEDIA_FILES : contains
     SOURCES ||--o{ MEDIA_FILES : submits
+    PERSONS ||--o{ INCIDENT_PERSONS : involved_in
+    INCIDENTS ||--o{ INCIDENT_PERSONS : has
+    PERSONS ||--o{ MEDIA_PERSONS : linked_to
+    MEDIA_FILES ||--o{ MEDIA_PERSONS : contains
     MEDIA_FILES ||--o{ CUSTODY_EVENTS : has
     MEDIA_FILES ||--o{ VERIFICATION_STEPS : has
     INCIDENTS ||--o{ VERIFICATION_STEPS : includes
@@ -45,6 +49,27 @@ erDiagram
       char file_sha256
       sensitivity_level access_classification
       legal_review_status legal_status
+    }
+    PERSONS {
+      bigint person_id PK
+      text person_code UK
+      text person_role
+      sensitivity_level sensitivity
+    }
+    INCIDENT_PERSONS {
+      bigint incident_id PK,FK
+      bigint person_id PK,FK
+      text relationship_type PK
+      smallint confidence
+      sensitivity_level protection_level
+    }
+    MEDIA_PERSONS {
+      bigint media_id PK,FK
+      bigint person_id PK,FK
+      text relationship_type PK
+      smallint confidence
+      boolean visible_in_media
+      sensitivity_level protection_level
     }
     CUSTODY_EVENTS {
       bigint custody_event_id PK
@@ -109,4 +134,3 @@ erDiagram
       numeric latitude
       numeric longitude
     }
-

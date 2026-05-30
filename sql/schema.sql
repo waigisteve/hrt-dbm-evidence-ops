@@ -59,6 +59,16 @@ CREATE TABLE incidents (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+CREATE TABLE incident_persons (
+    incident_id BIGINT NOT NULL REFERENCES incidents (incident_id) ON DELETE CASCADE,
+    person_id BIGINT NOT NULL REFERENCES persons (person_id),
+    relationship_type TEXT NOT NULL,
+    confidence SMALLINT CHECK (confidence BETWEEN 0 AND 100),
+    protection_level sensitivity_level NOT NULL DEFAULT 'restricted',
+    notes TEXT,
+    PRIMARY KEY (incident_id, person_id, relationship_type)
+);
+
 CREATE TABLE alleged_actors (
     alleged_actor_id BIGSERIAL PRIMARY KEY,
     actor_name TEXT NOT NULL,
@@ -91,6 +101,17 @@ CREATE TABLE media_files (
     legal_status legal_review_status NOT NULL DEFAULT 'not_reviewed',
     metadata_json JSONB NOT NULL DEFAULT '{}'::jsonb,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE media_persons (
+    media_id BIGINT NOT NULL REFERENCES media_files (media_id) ON DELETE CASCADE,
+    person_id BIGINT NOT NULL REFERENCES persons (person_id),
+    relationship_type TEXT NOT NULL,
+    confidence SMALLINT CHECK (confidence BETWEEN 0 AND 100),
+    visible_in_media BOOLEAN NOT NULL DEFAULT false,
+    protection_level sensitivity_level NOT NULL DEFAULT 'restricted',
+    notes TEXT,
+    PRIMARY KEY (media_id, person_id, relationship_type)
 );
 
 CREATE TABLE verification_steps (
@@ -175,6 +196,8 @@ CREATE INDEX idx_media_source ON media_files (source_id);
 CREATE INDEX idx_media_sha256 ON media_files (file_sha256);
 CREATE INDEX idx_media_status ON media_files (verification_status, legal_status);
 CREATE INDEX idx_media_received_at ON media_files (received_at);
+CREATE INDEX idx_incident_persons_person ON incident_persons (person_id);
+CREATE INDEX idx_media_persons_person ON media_persons (person_id);
 CREATE INDEX idx_custody_media_event_at ON custody_events (media_id, event_at);
 CREATE INDEX idx_verification_media ON verification_steps (media_id, reviewed_at);
 CREATE INDEX idx_incidents_location_time ON incidents (location_id, occurred_at);

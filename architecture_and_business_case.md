@@ -100,12 +100,22 @@ flowchart LR
 
 ## Schema Overview
 
+`persons` is intentionally pseudonymous and connected through controlled relationship tables rather than direct identifying fields. This supports analysis while keeping protected identities compartmentalised.
+
+- `incident_persons` links a protected person code to an incident as witness, victim, collector, reviewer, subject, or other relationship type.
+- `media_persons` links a protected person code to a media item, including whether the person is visible in the media and the confidence of the relationship.
+- Staff/action fields such as `reviewer_code`, `actor_code`, and `user_code` remain text codes in this demo because production identity integration would usually come from SSO/IAM and audit systems, not free joins to sensitive person records.
+
 ```mermaid
 erDiagram
     ORGANISATIONS ||--o{ SOURCES : supports
     LOCATIONS ||--o{ INCIDENTS : locates
     INCIDENTS ||--o{ MEDIA_FILES : contains
     SOURCES ||--o{ MEDIA_FILES : submits
+    PERSONS ||--o{ INCIDENT_PERSONS : involved_in
+    INCIDENTS ||--o{ INCIDENT_PERSONS : has
+    PERSONS ||--o{ MEDIA_PERSONS : linked_to
+    MEDIA_FILES ||--o{ MEDIA_PERSONS : contains
     MEDIA_FILES ||--o{ CUSTODY_EVENTS : has
     MEDIA_FILES ||--o{ VERIFICATION_STEPS : has
     INCIDENTS ||--o{ VERIFICATION_STEPS : includes

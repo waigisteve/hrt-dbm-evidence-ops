@@ -86,6 +86,19 @@ Table incidents {
   updated_at timestamptz [not null]
 }
 
+Table incident_persons {
+  incident_id bigint [not null]
+  person_id bigint [not null]
+  relationship_type text [not null]
+  confidence smallint
+  protection_level sensitivity_level [not null, default: 'restricted']
+  notes text
+
+  indexes {
+    (incident_id, person_id, relationship_type) [pk]
+  }
+}
+
 Table alleged_actors {
   alleged_actor_id bigint [pk, increment]
   actor_name text [not null]
@@ -121,6 +134,20 @@ Table media_files {
   legal_status legal_review_status [not null, default: 'not_reviewed']
   metadata_json jsonb [not null]
   created_at timestamptz [not null]
+}
+
+Table media_persons {
+  media_id bigint [not null]
+  person_id bigint [not null]
+  relationship_type text [not null]
+  confidence smallint
+  visible_in_media boolean [not null, default: false]
+  protection_level sensitivity_level [not null, default: 'restricted']
+  notes text
+
+  indexes {
+    (media_id, person_id, relationship_type) [pk]
+  }
 }
 
 Table verification_steps {
@@ -205,10 +232,14 @@ Table legal_reviews {
 
 Ref: sources.partner_organisation_id > organisations.organisation_id
 Ref: incidents.location_id > locations.location_id
+Ref: incident_persons.incident_id > incidents.incident_id
+Ref: incident_persons.person_id > persons.person_id
 Ref: incident_alleged_actors.incident_id > incidents.incident_id
 Ref: incident_alleged_actors.alleged_actor_id > alleged_actors.alleged_actor_id
 Ref: media_files.incident_id > incidents.incident_id
 Ref: media_files.source_id > sources.source_id
+Ref: media_persons.media_id > media_files.media_id
+Ref: media_persons.person_id > persons.person_id
 Ref: verification_steps.media_id > media_files.media_id
 Ref: verification_steps.incident_id > incidents.incident_id
 Ref: custody_events.media_id > media_files.media_id
@@ -219,4 +250,3 @@ Ref: media_tags.media_id > media_files.media_id
 Ref: media_tags.tag_id > tags.tag_id
 Ref: legal_reviews.media_id > media_files.media_id
 Ref: legal_reviews.incident_id > incidents.incident_id
-

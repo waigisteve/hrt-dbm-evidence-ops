@@ -57,3 +57,7 @@ I would first stabilise and understand the existing systems, then improve eviden
 ## Core Message for Videre
 
 This role is not only database administration. It is secure investigative systems leadership: operating closed-source evidence platforms, strengthening relational analysis, preserving metadata and chain of custody, guiding responsible AI adoption, training non-technical users, supporting CSO partners, and leading data protection practice.
+
+## Schema Note
+
+The `persons` table is pseudonymous and now connects through `incident_persons` and `media_persons`. This allows investigative analysis of witnesses, victims, collectors, reviewers, or visible persons while preserving protection controls and avoiding direct personal identifiers in operational dashboards.
