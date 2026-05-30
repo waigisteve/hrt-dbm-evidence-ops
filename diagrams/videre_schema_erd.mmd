@@ -1,0 +1,112 @@
+erDiagram
+    ORGANISATIONS ||--o{ SOURCES : supports
+    LOCATIONS ||--o{ INCIDENTS : locates
+    INCIDENTS ||--o{ MEDIA_FILES : contains
+    SOURCES ||--o{ MEDIA_FILES : submits
+    MEDIA_FILES ||--o{ CUSTODY_EVENTS : has
+    MEDIA_FILES ||--o{ VERIFICATION_STEPS : has
+    INCIDENTS ||--o{ VERIFICATION_STEPS : includes
+    MEDIA_FILES ||--o{ ACCESS_LOGS : records
+    MEDIA_FILES ||--o{ EXPORTS : produces
+    ORGANISATIONS ||--o{ EXPORTS : receives
+    MEDIA_FILES ||--o{ LEGAL_REVIEWS : reviewed_by
+    INCIDENTS ||--o{ LEGAL_REVIEWS : has
+    INCIDENTS ||--o{ INCIDENT_ALLEGED_ACTORS : references
+    ALLEGED_ACTORS ||--o{ INCIDENT_ALLEGED_ACTORS : appears_in
+    MEDIA_FILES ||--o{ MEDIA_TAGS : tagged
+    TAGS ||--o{ MEDIA_TAGS : classifies
+
+    ORGANISATIONS {
+      bigint organisation_id PK
+      text organisation_name
+      text organisation_type
+      char country_code
+    }
+    SOURCES {
+      bigint source_id PK
+      text source_code UK
+      text source_type
+      bigint partner_organisation_id FK
+      sensitivity_level risk_level
+    }
+    INCIDENTS {
+      bigint incident_id PK
+      text incident_code UK
+      text incident_type
+      timestamptz occurred_at
+      verification_status verification_status
+    }
+    MEDIA_FILES {
+      bigint media_id PK
+      text external_video_system_id UK
+      bigint incident_id FK
+      bigint source_id FK
+      text media_type
+      char file_sha256
+      sensitivity_level access_classification
+      legal_review_status legal_status
+    }
+    CUSTODY_EVENTS {
+      bigint custody_event_id PK
+      bigint media_id FK
+      custody_event_type event_type
+      timestamptz event_at
+      text actor_code
+      char event_hash
+    }
+    VERIFICATION_STEPS {
+      bigint verification_step_id PK
+      bigint media_id FK
+      bigint incident_id FK
+      text step_type
+      verification_status result
+    }
+    LEGAL_REVIEWS {
+      bigint legal_review_id PK
+      bigint media_id FK
+      bigint incident_id FK
+      legal_review_status status
+    }
+    ACCESS_LOGS {
+      bigint access_log_id PK
+      bigint media_id FK
+      text user_code
+      text action
+      timestamptz accessed_at
+    }
+    EXPORTS {
+      bigint export_id PK
+      bigint media_id FK
+      bigint recipient_organisation_id FK
+      text purpose
+      char export_sha256
+    }
+    TAGS {
+      bigint tag_id PK
+      text tag_name UK
+      text tag_type
+    }
+    MEDIA_TAGS {
+      bigint media_id PK,FK
+      bigint tag_id PK,FK
+      text tagged_by
+    }
+    ALLEGED_ACTORS {
+      bigint alleged_actor_id PK
+      text actor_name
+      text actor_type
+    }
+    INCIDENT_ALLEGED_ACTORS {
+      bigint incident_id PK,FK
+      bigint alleged_actor_id PK,FK
+      smallint confidence
+    }
+    LOCATIONS {
+      bigint location_id PK
+      char country_code
+      text admin_area
+      text locality
+      numeric latitude
+      numeric longitude
+    }
+

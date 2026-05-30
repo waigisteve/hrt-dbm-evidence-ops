@@ -1,0 +1,65 @@
+flowchart LR
+    subgraph Sources[Evidence Sources]
+        CSO[CSO partners]
+        Field[Field collectors]
+        Inv[Investigators]
+        Vendor[Closed-source video system]
+    end
+
+    subgraph OLTP[Operational OLTP]
+        PG[(PostgreSQL videre_prep)]
+        Incidents[Incidents]
+        Media[Media metadata]
+        Custody[Custody events]
+        Verify[Verification steps]
+        Legal[Legal reviews]
+        Access[Access logs]
+    end
+
+    subgraph ObjectStore[NoSQL / Object Store]
+        Catalog[media_store/catalog.jsonl]
+        Objects[media_store/objects]
+        Quarantine[media_store/quarantine]
+    end
+
+    subgraph OLAP[Analytics OLAP]
+        ETL[refresh_olap.py]
+        Duck[(DuckDB evidence_fact)]
+        Snapshot[dashboard/data.json]
+    end
+
+    subgraph Dashboard[Stakeholder Dashboards]
+        Lead[Leadership]
+        Ops[Investigations]
+        Law[Legal]
+        Partner[CSO Partners masked]
+        DP[Data Protection]
+        AI[AI Review]
+        Mon[Monitoring]
+    end
+
+    CSO --> PG
+    Field --> PG
+    Inv --> PG
+    Vendor --> PG
+    PG --> Incidents
+    PG --> Media
+    PG --> Custody
+    PG --> Verify
+    PG --> Legal
+    PG --> Access
+    Media --> Catalog
+    Catalog --> Objects
+    Catalog --> Quarantine
+    PG --> ETL
+    Catalog --> ETL
+    ETL --> Duck
+    ETL --> Snapshot
+    Snapshot --> Lead
+    Snapshot --> Ops
+    Snapshot --> Law
+    Snapshot --> Partner
+    Snapshot --> DP
+    Snapshot --> AI
+    Snapshot --> Mon
+

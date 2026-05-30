@@ -1,0 +1,53 @@
+<mxfile host="app.diagrams.net" modified="2026-05-30T00:00:00.000Z" agent="Codex" version="24.7.17">
+  <diagram id="videre-architecture" name="Videre OLTP OLAP Architecture">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="sources" value="Evidence Sources&#xa;CSO partners, field collectors, investigators, closed-source video system" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8eef5;strokeColor=#607086;" vertex="1" parent="1">
+          <mxGeometry x="40" y="120" width="250" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="oltp" value="PostgreSQL OLTP&#xa;incidents, media_files, sources, custody_events, verification_steps, legal_reviews, access_logs, exports" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e3f2fd;strokeColor=#1d5f99;" vertex="1" parent="1">
+          <mxGeometry x="370" y="90" width="300" height="180" as="geometry"/>
+        </mxCell>
+        <mxCell id="nosql" value="NoSQL Media Catalog / Object Store&#xa;catalog.jsonl, objects, quarantine, hashes, MIME, safety status" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#16724a;" vertex="1" parent="1">
+          <mxGeometry x="740" y="90" width="300" height="180" as="geometry"/>
+        </mxCell>
+        <mxCell id="olap" value="DuckDB OLAP&#xa;evidence_fact, reporting snapshot, dashboard/data.json" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff4e5;strokeColor=#b76e00;" vertex="1" parent="1">
+          <mxGeometry x="1110" y="90" width="300" height="180" as="geometry"/>
+        </mxCell>
+        <mxCell id="dash" value="Stakeholder Dashboards&#xa;Leadership, Investigations, Legal, CSO Partners, Data Protection, AI Review, Monitoring" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fdecec;strokeColor=#b42318;" vertex="1" parent="1">
+          <mxGeometry x="1110" y="360" width="300" height="170" as="geometry"/>
+        </mxCell>
+        <mxCell id="ai" value="Responsible AI Controls&#xa;HITL review, no external SaaS for restricted media, DPIA triggers, audit trail" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3e8ff;strokeColor=#6f42c1;" vertex="1" parent="1">
+          <mxGeometry x="740" y="380" width="300" height="140" as="geometry"/>
+        </mxCell>
+        <mxCell id="monitoring" value="Monitoring and Governance&#xa;custody gaps, restricted concentration, unverified backlog, source skew, ETL duration" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8fafc;strokeColor=#35465c;" vertex="1" parent="1">
+          <mxGeometry x="370" y="380" width="300" height="140" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="sources" target="oltp" style="endArrow=block;html=1;rounded=0;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="oltp" target="nosql" style="endArrow=block;html=1;rounded=0;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="oltp" target="olap" style="endArrow=block;html=1;rounded=0;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="nosql" target="olap" style="endArrow=block;html=1;rounded=0;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="olap" target="dash" style="endArrow=block;html=1;rounded=0;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="ai" target="dash" style="endArrow=block;html=1;rounded=0;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="monitoring" target="dash" style="endArrow=block;html=1;rounded=0;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
+

@@ -29,6 +29,8 @@ DuckDB OLAP: olap/videre_olap.duckdb
 Browser dashboard: http://127.0.0.1:8765
 ```
 
+For full OLTP/OLAP architecture, business workflow, schema diagrams, and diagrams.net assets, see `architecture_and_business_case.md` and the `diagrams/` folder.
+
 ## PostgreSQL OLTP Layer
 
 PostgreSQL stores the operational evidence data. It represents the environment where records are created, updated, protected, and reviewed.
