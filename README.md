@@ -38,16 +38,19 @@ psql -d videre_prep -f sql/analysis_queries.sql
    - Explain the OLTP/OLAP architecture, business workflow, achieved outcomes, gaps, and diagrams.net assets.
    - dbdiagram schema: https://dbdiagram.io/d/hrights-ngo-schema-6a1ac16ff15b4b045235d88d
 
-7. Use `nosql_media_and_monitoring_design.md`.
+7. Use `schema_security_workflow.md`.
+   - Explain the schema, table dependencies, security measures, data expectations, and investigative/legal workflow.
+
+8. Use `nosql_media_and_monitoring_design.md`.
    - Explain the NoSQL media catalog, safe media scaffolding, visual analytics, AI controls, and monitoring posture.
 
-8. Use `stakeholder_dashboard_framework.md`.
+9. Use `stakeholder_dashboard_framework.md`.
    - Explain the stakeholder-specific dashboard design, filters, masking, and one-click workflow drilldowns.
 
-9. Use `source_references.md`.
+10. Use `source_references.md`.
    - Ground your answers in Videre's public model and recognised evidence-management standards.
 
-10. Follow `practice_schedule.md`.
+11. Follow `practice_schedule.md`.
    - The schedule gives a 3-week route from research to final mock interview.
 
 ## Positioning Statement
