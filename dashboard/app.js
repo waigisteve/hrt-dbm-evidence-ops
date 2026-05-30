@@ -6,6 +6,9 @@ const title = document.getElementById("view-title");
 const note = document.getElementById("view-note");
 const updated = document.getElementById("updated");
 const roleButtons = Array.from(document.querySelectorAll(".role-button"));
+const supportRegion = document.getElementById("support-region");
+const visualGrid = document.getElementById("visual-grid");
+const filtersRegion = document.getElementById("filters");
 
 const filters = {
   search: document.getElementById("search"),
@@ -73,6 +76,7 @@ function render() {
   renderKpis(kpiFromRows(filtered));
   renderCharts(filtered);
   renderRole(viewData, filtered);
+  applyRoleLayout();
 }
 
 function populateFilters(rows) {
@@ -276,6 +280,16 @@ function renderRole(data) {
   else if (activeRole === "monitoring") renderMonitoring(rows);
   else if (activeRole === "legal") renderLegal(rows);
   else renderEvidence(rows);
+}
+
+function applyRoleLayout() {
+  const showSupport = ["leadership", "investigations", "legal", "data_protection"].includes(activeRole);
+  const showFilters = ["investigations", "legal", "data_protection", "media", "ai"].includes(activeRole);
+  const showVisuals = ["leadership", "investigations", "data_protection"].includes(activeRole);
+  supportRegion.hidden = !showSupport && !showFilters;
+  filtersRegion.hidden = !showFilters;
+  visualGrid.hidden = !showVisuals;
+  kpis.hidden = !showSupport;
 }
 
 function renderLeadership(rows) {

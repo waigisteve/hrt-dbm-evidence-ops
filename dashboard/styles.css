@@ -112,7 +112,7 @@ body[data-role="monitoring"] .panel-head { border-left: 6px solid var(--risk); }
   display: grid;
   grid-template-columns: repeat(6, minmax(120px, 1fr));
   gap: 12px;
-  margin-bottom: 16px;
+  margin: 16px 0;
 }
 
 .filters {
@@ -132,6 +132,10 @@ body[data-role="monitoring"] .panel-head { border-left: 6px solid var(--risk); }
   grid-template-columns: repeat(3, minmax(220px, 1fr));
   gap: 12px;
   margin-bottom: 16px;
+}
+
+[hidden] {
+  display: none !important;
 }
 
 .chart-panel {
