@@ -226,11 +226,19 @@ function renderHeatmap(rows) {
   heatmap.innerHTML = rows.map(row => {
     const score = row.items ? (row.restricted + row.items - row.ready) / (row.items * 2) : 0;
     const color = heatColor(score);
-    return `<div class="heat-cell" style="background:${color}">
+    return `<button class="heat-cell" style="background:${color}" data-incident="${escapeHtml(row.incident_code)}">
       <strong>${row.incident_code}</strong>
       <span>${row.items} items | ${row.restricted} restricted</span>
-    </div>`;
+    </button>`;
   }).join("") || `<div class="empty">No heatmap data.</div>`;
+  heatmap.querySelectorAll(".heat-cell").forEach(cell => {
+    cell.addEventListener("click", () => {
+      filters.incident.value = cell.dataset.incident;
+      activeRole = "investigations";
+      roleSelect.value = "investigations";
+      render();
+    });
+  });
 }
 
 function heatColor(score) {
@@ -248,29 +256,92 @@ function renderRole(data) {
     return;
   }
   if (activeRole === "leadership") renderLeadership(rows);
+  else if (activeRole === "partners") renderPartners(rows);
   else if (activeRole === "ai") renderAi(rows);
   else if (activeRole === "media") renderMedia(rows);
   else if (activeRole === "monitoring") renderMonitoring(rows);
+  else if (activeRole === "legal") renderLegal(rows);
   else renderEvidence(rows);
 }
 
 function renderLeadership(rows) {
-  content.innerHTML = table(["Incident", "Title", "Items", "Ready", "Restricted"], rows.map(row => [
-    row.incident_code,
-    row.title,
-    row.items,
-    `<span class="ready">${row.ready}</span>`,
-    `<span class="restricted">${row.restricted}</span>`
-  ]));
+  const totalItems = rows.reduce((sum, row) => sum + row.items, 0);
+  const ready = rows.reduce((sum, row) => sum + row.ready, 0);
+  const restricted = rows.reduce((sum, row) => sum + row.restricted, 0);
+  const open = rows.filter(row => row.ready < row.items).length;
+  content.innerHTML = `
+    <div class="executive-grid">
+      ${execCard("Open investigations", open, "Cases with unresolved evidence work")}
+      ${execCard("Evidence items", totalItems, "Current filtered portfolio")}
+      ${execCard("Ready for legal", ready, "Evidence meeting readiness controls")}
+      ${execCard("Restricted items", restricted, "Requires strict access handling")}
+    </div>
+    <div class="trend-row">
+      ${rows.map(row => `
+        <button class="trend-card" data-incident="${escapeHtml(row.incident_code)}">
+          <strong>${row.incident_code}</strong>
+          <span>${escapeHtml(row.title)}</span>
+          <div class="progress"><i style="width:${row.items ? Math.round((row.ready / row.items) * 100) : 0}%"></i></div>
+          <small>${row.ready}/${row.items} ready</small>
+        </button>
+      `).join("")}
+    </div>
+  `;
+  content.querySelectorAll(".trend-card").forEach(card => {
+    card.addEventListener("click", () => {
+      filters.incident.value = card.dataset.incident;
+      activeRole = "investigations";
+      roleSelect.value = "investigations";
+      render();
+    });
+  });
 }
 
 function renderAi(rows) {
-  content.innerHTML = table(["Media", "File", "Suggested AI use", "Required control"], rows.map(row => [
-    row.media_id,
-    row.file,
-    row.suggested_use,
-    row.required_control
-  ]));
+  const lowConfidence = rows.length;
+  const transcription = rows.filter(row => row.suggested_use.toLowerCase().includes("transcription")).length;
+  const extraction = rows.filter(row => row.suggested_use.toLowerCase().includes("extraction")).length;
+  content.innerHTML = `
+    <div class="executive-grid">
+      ${execCard("HITL queue", lowConfidence, "AI candidates awaiting human review")}
+      ${execCard("Transcription candidates", transcription, "Video/audio work queue")}
+      ${execCard("Extraction candidates", extraction, "Document/entity work queue")}
+      ${execCard("Auto-approved outputs", 0, "Kept at zero by design")}
+    </div>
+    ${table(["Media", "File", "Suggested AI use", "Required control"], rows.map(row => [
+      row.media_id,
+      row.file,
+      row.suggested_use,
+      row.required_control
+    ]))}
+  `;
+}
+
+function renderLegal(rows) {
+  content.innerHTML = table(
+    ["Media", "File", "Incident", "Verification", "Legal", "Custody", "Next legal action"],
+    rows.map(row => [
+      row.media_id,
+      row.original_filename,
+      row.incident_code,
+      status(row.verification_status),
+      status(row.legal_status),
+      row.custody_events,
+      legalAction(row)
+    ])
+  );
+}
+
+function renderPartners(rows) {
+  const grouped = incidentSummary(rows);
+  content.innerHTML = `
+    <div class="notice">Partner view is masked: no source names, exact locations, person details, file hashes, or raw filenames are exposed.</div>
+    ${table(["Area code", "Shared trend", "Items needing partner follow-up"], grouped.map((row, index) => [
+      `AREA-${String(index + 1).padStart(2, "0")}`,
+      "Submission quality and custody completeness",
+      row.items
+    ]))}
+  `;
 }
 
 function renderMonitoring(rows) {
@@ -311,6 +382,18 @@ function renderEvidence(rows) {
       status(row.safe_status || "not_scanned")
     ])
   );
+}
+
+function execCard(label, value, help) {
+  return `<div class="exec-card"><strong>${value}</strong><span>${label}</span><p>${help}</p></div>`;
+}
+
+function legalAction(row) {
+  if (Number(row.custody_events) === 0) return "Hold: reconstruct custody trail";
+  if (row.verification_status !== "verified") return "Wait for verification completion";
+  if (row.legal_status === "needs_review" || row.legal_status === "not_reviewed") return "Schedule legal review";
+  if (row.legal_status === "approved_for_legal_use") return "Eligible for controlled evidence pack";
+  return "Restricted: legal sign-off required";
 }
 
 function table(headers, rows) {

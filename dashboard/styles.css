@@ -114,6 +114,9 @@ canvas {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  text-align: left;
+  border: 0;
+  cursor: pointer;
 }
 
 .heat-cell strong {
@@ -229,11 +232,93 @@ th { background: #f8fafc; color: #35465c; }
   margin-bottom: 6px;
 }
 
+.executive-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(150px, 1fr));
+  gap: 12px;
+  padding: 14px;
+}
+
+.exec-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  background: #ffffff;
+}
+
+.exec-card strong {
+  display: block;
+  font-size: 28px;
+  margin-bottom: 4px;
+}
+
+.exec-card span {
+  display: block;
+  font-weight: 700;
+}
+
+.exec-card p {
+  font-size: 13px;
+}
+
+.trend-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  padding: 0 14px 14px;
+}
+
+.trend-card {
+  min-height: 118px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  text-align: left;
+  color: var(--ink);
+}
+
+.trend-card strong,
+.trend-card span,
+.trend-card small {
+  display: block;
+}
+
+.trend-card span {
+  margin: 6px 0 12px;
+  color: var(--muted);
+}
+
+.progress {
+  height: 8px;
+  border-radius: 999px;
+  background: #e8eef5;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress i {
+  display: block;
+  height: 100%;
+  background: var(--ok);
+}
+
+.notice {
+  margin: 14px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--blue);
+  border-radius: 8px;
+  background: #f8fafc;
+  color: var(--ink);
+}
+
 @media (max-width: 900px) {
   .topbar { align-items: stretch; flex-direction: column; }
   .login { grid-template-columns: 1fr; }
   .kpis { grid-template-columns: repeat(2, 1fr); }
   .filters { grid-template-columns: 1fr; }
   .visual-grid { grid-template-columns: 1fr; }
+  .executive-grid { grid-template-columns: 1fr; }
   table { font-size: 12px; }
 }
