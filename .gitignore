@@ -1,0 +1,20 @@
+# Runtime database state
+.pgdata/
+olap/*.duckdb
+olap/*.wal
+postgres.log
+dashboard/data.json
+
+# Python runtime artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local environment and editor files
+.env
+.venv/
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db

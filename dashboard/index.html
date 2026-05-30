@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Videre Evidence Operations Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>Evidence Operations</h1>
+      <p>OLTP intake to OLAP reporting simulation</p>
+    </div>
+    <div class="login">
+      <label for="role">Stakeholder access</label>
+      <select id="role">
+        <option value="leadership">Leadership</option>
+        <option value="investigations">Investigations</option>
+        <option value="legal">Legal</option>
+        <option value="partners">CSO Partners</option>
+        <option value="data_protection">Data Protection</option>
+        <option value="ai">AI Review</option>
+      </select>
+      <input id="password" type="password" value="demo" aria-label="Password">
+      <button id="login">Open</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="kpis" id="kpis"></section>
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <h2 id="view-title">Leadership</h2>
+          <p id="view-note"></p>
+        </div>
+        <span id="updated">Waiting for data</span>
+      </div>
+      <div id="content"></div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
