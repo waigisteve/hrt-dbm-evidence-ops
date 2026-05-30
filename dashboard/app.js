@@ -177,9 +177,102 @@ function renderKpis(values) {
 }
 
 function renderCharts(rows) {
-  drawDonut("media-chart", countBy(rows, "media_type"));
-  drawBars("verification-chart", countBy(rows, "verification_status"));
+  const profile = visualProfile(activeRole, rows);
+  document.querySelector("#media-chart").closest(".chart-panel").querySelector("h2").textContent = profile.leftTitle;
+  document.querySelector("#verification-chart").closest(".chart-panel").querySelector("h2").textContent = profile.middleTitle;
+  document.querySelector("#heatmap").closest(".chart-panel").querySelector("h2").textContent = profile.rightTitle;
+  if (profile.leftType === "donut") drawDonut("media-chart", profile.leftData);
+  else drawBars("media-chart", profile.leftData);
+  if (profile.middleType === "donut") drawDonut("verification-chart", profile.middleData);
+  else drawBars("verification-chart", profile.middleData);
   renderHeatmap(incidentSummary(rows));
+}
+
+function visualProfile(role, rows) {
+  if (role === "leadership") {
+    return {
+      leftTitle: "Portfolio Mix",
+      leftType: "donut",
+      leftData: countBy(rows, "media_type"),
+      middleTitle: "Strategic Readiness",
+      middleType: "bars",
+      middleData: [
+        { label: "ready", value: rows.filter(isReady).length },
+        { label: "open work", value: rows.filter(row => !isReady(row)).length },
+        { label: "restricted", value: rows.filter(row => row.access_classification === "restricted").length }
+      ],
+      rightTitle: "Case Risk Heatmap"
+    };
+  }
+  if (role === "legal") {
+    return {
+      leftTitle: "Legal Status",
+      leftType: "donut",
+      leftData: countBy(rows, "legal_status"),
+      middleTitle: "Evidentiary Completeness",
+      middleType: "bars",
+      middleData: [
+        { label: "ready", value: rows.filter(isReady).length },
+        { label: "custody gaps", value: rows.filter(row => Number(row.custody_events) === 0).length },
+        { label: "needs review", value: rows.filter(row => ["needs_review", "not_reviewed"].includes(row.legal_status)).length }
+      ],
+      rightTitle: "Matter Readiness Heatmap"
+    };
+  }
+  if (role === "data_protection" || role === "monitoring") {
+    return {
+      leftTitle: "Access Classification",
+      leftType: "donut",
+      leftData: countBy(rows, "access_classification"),
+      middleTitle: "Control Exceptions",
+      middleType: "bars",
+      middleData: [
+        { label: "custody gaps", value: rows.filter(row => Number(row.custody_events) === 0).length },
+        { label: "restricted", value: rows.filter(row => row.access_classification === "restricted").length },
+        { label: "unverified", value: rows.filter(row => row.verification_status === "unverified").length }
+      ],
+      rightTitle: "Compliance Heatmap"
+    };
+  }
+  if (role === "ai") {
+    return {
+      leftTitle: "AI Workload Type",
+      leftType: "donut",
+      leftData: countBy(rows, "media_type"),
+      middleTitle: "HITL Queue",
+      middleType: "bars",
+      middleData: [
+        { label: "transcription", value: rows.filter(row => row.media_type === "video" || row.media_type === "audio").length },
+        { label: "extraction", value: rows.filter(row => row.media_type === "document").length },
+        { label: "visual triage", value: rows.filter(row => row.media_type === "photo").length }
+      ],
+      rightTitle: "AI Risk Heatmap"
+    };
+  }
+  if (role === "partners") {
+    return {
+      leftTitle: "Masked Submission Mix",
+      leftType: "donut",
+      leftData: countBy(rows, "media_type"),
+      middleTitle: "Partner Follow-up Need",
+      middleType: "bars",
+      middleData: [
+        { label: "custody follow-up", value: rows.filter(row => Number(row.custody_events) === 0).length },
+        { label: "verification pending", value: rows.filter(row => row.verification_status === "unverified").length },
+        { label: "restricted", value: rows.filter(row => row.access_classification === "restricted").length }
+      ],
+      rightTitle: "Masked Area Heatmap"
+    };
+  }
+  return {
+    leftTitle: "Media Mix",
+    leftType: "donut",
+    leftData: countBy(rows, "media_type"),
+    middleTitle: "Verification Pipeline",
+    middleType: "bars",
+    middleData: countBy(rows, "verification_status"),
+    rightTitle: "Operational Risk Heatmap"
+  };
 }
 
 function countBy(rows, key) {
@@ -283,9 +376,9 @@ function renderRole(data) {
 }
 
 function applyRoleLayout() {
-  const showSupport = ["leadership", "investigations", "legal", "data_protection"].includes(activeRole);
+  const showSupport = ["leadership", "investigations", "legal", "data_protection", "ai", "partners", "monitoring"].includes(activeRole);
   const showFilters = ["investigations", "legal", "data_protection", "media", "ai"].includes(activeRole);
-  const showVisuals = ["leadership", "investigations", "data_protection"].includes(activeRole);
+  const showVisuals = ["leadership", "investigations", "legal", "data_protection", "ai", "partners", "monitoring"].includes(activeRole);
   supportRegion.hidden = !showSupport && !showFilters;
   filtersRegion.hidden = !showFilters;
   visualGrid.hidden = !showVisuals;
@@ -314,6 +407,7 @@ function renderLeadership(rows) {
         </button>
       `).join("")}
     </div>
+    ${timeline("Quarterly case throughput", rows.slice(0, 12))}
   `;
   content.querySelectorAll(".trend-card").forEach(card => {
     card.addEventListener("click", () => {
@@ -343,11 +437,14 @@ function renderAi(rows) {
       row.suggested_use,
       row.required_control
     ]))}
+    ${qaSplit(rows)}
   `;
 }
 
 function renderLegal(rows) {
-  content.innerHTML = table(
+  content.innerHTML = `
+    ${milestoneBoard(rows)}
+    ${table(
     ["Media", "File", "Incident", "Verification", "Legal", "Custody", "Next legal action"],
     rows.map(row => [
       row.media_id,
@@ -358,13 +455,15 @@ function renderLegal(rows) {
       row.custody_events,
       legalAction(row)
     ])
-  );
+  )}
+  `;
 }
 
 function renderPartners(rows) {
   const grouped = incidentSummary(rows);
   content.innerHTML = `
     <div class="notice">Partner view is masked: no source names, exact locations, person details, file hashes, or raw filenames are exposed.</div>
+    ${maskedTrend(grouped)}
     ${table(["Area code", "Shared trend", "Items needing partner follow-up"], grouped.map((row, index) => [
       `AREA-${String(index + 1).padStart(2, "0")}`,
       "Submission quality and custody completeness",
@@ -374,7 +473,7 @@ function renderPartners(rows) {
 }
 
 function renderMonitoring(rows) {
-  content.innerHTML = `<div class="monitor-grid">${rows.map(row => `
+  content.innerHTML = `${monitorTimeline(rows)}<div class="monitor-grid">${rows.map(row => `
     <div class="monitor-card ${row.status}">
       <strong>${human(row.name)}</strong>
       <p>Value: ${row.value} | Threshold: ${row.threshold}</p>
@@ -401,7 +500,9 @@ function normalisePreviewPath(path) {
 }
 
 function renderEvidence(rows) {
-  content.innerHTML = table(
+  content.innerHTML = `
+    ${pipelineBoard(rows)}
+    ${table(
     ["Media", "File", "Incident", "Type", "Class", "Verification", "Legal", "Custody", "Safety"],
     rows.map(row => [
       row.media_id,
@@ -414,7 +515,8 @@ function renderEvidence(rows) {
       row.custody_events,
       status(row.safe_status || "not_scanned")
     ])
-  );
+  )}
+  `;
 }
 
 function execCard(label, value, help) {
@@ -427,6 +529,73 @@ function legalAction(row) {
   if (row.legal_status === "needs_review" || row.legal_status === "not_reviewed") return "Schedule legal review";
   if (row.legal_status === "approved_for_legal_use") return "Eligible for controlled evidence pack";
   return "Restricted: legal sign-off required";
+}
+
+function pipelineBoard(rows) {
+  const stages = [
+    ["Received", rows.length],
+    ["Custody complete", rows.filter(row => Number(row.custody_events) >= 2).length],
+    ["Verified", rows.filter(row => row.verification_status === "verified").length],
+    ["Legal approved", rows.filter(row => row.legal_status === "approved_for_legal_use").length]
+  ];
+  return `<div class="pipeline">${stages.map(([label, value], index) => `
+    <div class="stage"><strong>${value}</strong><span>${label}</span></div>${index < stages.length - 1 ? "<b></b>" : ""}
+  `).join("")}</div>`;
+}
+
+function milestoneBoard(rows) {
+  const items = [
+    ["Intake review", rows.length, "Complete record inventory"],
+    ["Verification", rows.filter(row => row.verification_status === "verified").length, "Strict-standard verification"],
+    ["Legal review", rows.filter(row => row.legal_status === "approved_for_legal_use").length, "Approved for legal use"],
+    ["Export pack", rows.filter(isReady).length, "Ready for controlled disclosure"]
+  ];
+  return `<div class="gantt">${items.map(([label, value, help], index) => `
+    <div class="gantt-row">
+      <span>${label}</span>
+      <i style="width:${Math.min(100, 18 + value * 8)}%; margin-left:${index * 4}%"></i>
+      <small>${value} | ${help}</small>
+    </div>
+  `).join("")}</div>`;
+}
+
+function timeline(titleText, rows) {
+  return `<div class="timeline"><h3>${titleText}</h3>${rows.map((row, index) => `
+    <button data-incident="${escapeHtml(row.incident_code)}">
+      <strong>Q${(index % 4) + 1}</strong>
+      <span>${row.incident_code}</span>
+      <i style="height:${Math.max(18, row.items * 12)}px"></i>
+    </button>
+  `).join("")}</div>`;
+}
+
+function maskedTrend(rows) {
+  return `<div class="masked-trend">${rows.map((row, index) => `
+    <div>
+      <strong>AREA-${String(index + 1).padStart(2, "0")}</strong>
+      <span>${row.items} submissions need follow-up</span>
+      <i style="width:${Math.min(100, row.items * 12)}%"></i>
+    </div>
+  `).join("")}</div>`;
+}
+
+function qaSplit(rows) {
+  const human = rows.length;
+  return `<div class="qa-grid">
+    ${execCard("Human review required", human, "All AI-assisted outputs wait for HITL verification")}
+    ${execCard("Auto decisions", 0, "No automated verification or legal conclusions")}
+    ${execCard("Restricted inputs", human, "No external SaaS without approval")}
+  </div>`;
+}
+
+function monitorTimeline(rows) {
+  return `<div class="monitor-strip">${rows.map(row => `
+    <div class="${row.status}">
+      <strong>${human(row.name)}</strong>
+      <i style="width:${Math.min(100, Math.round(Number(row.value) * 100))}%"></i>
+      <span>${row.status}</span>
+    </div>
+  `).join("")}</div>`;
 }
 
 function syncRoleNav() {

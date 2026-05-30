@@ -366,6 +366,122 @@ th { background: #f8fafc; color: #35465c; }
   color: var(--ink);
 }
 
+.pipeline {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) 24px minmax(120px, 1fr) 24px minmax(120px, 1fr) 24px minmax(120px, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 14px;
+}
+
+.pipeline .stage {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.pipeline .stage strong {
+  display: block;
+  font-size: 24px;
+}
+
+.pipeline b {
+  height: 2px;
+  background: var(--line);
+}
+
+.gantt {
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.gantt-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 220px;
+  gap: 10px;
+  align-items: center;
+}
+
+.gantt-row i,
+.masked-trend i,
+.monitor-strip i {
+  display: block;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--blue);
+}
+
+.timeline {
+  padding: 0 14px 14px;
+}
+
+.timeline h3 {
+  margin: 0 0 10px;
+  font-size: 15px;
+}
+
+.timeline {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 8px;
+}
+
+.timeline h3 {
+  grid-column: 1 / -1;
+}
+
+.timeline button {
+  min-height: 90px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  gap: 4px;
+}
+
+.timeline button i {
+  display: block;
+  width: 100%;
+  background: #8fa3b8;
+  border-radius: 4px 4px 0 0;
+}
+
+.masked-trend,
+.qa-grid,
+.monitor-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  padding: 14px;
+}
+
+.masked-trend div,
+.monitor-strip div {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.masked-trend strong,
+.masked-trend span,
+.monitor-strip strong,
+.monitor-strip span {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.monitor-strip .alert i {
+  background: var(--risk);
+}
+
+.monitor-strip .ok i {
+  background: var(--ok);
+}
+
 @media (max-width: 900px) {
   .topbar { align-items: stretch; flex-direction: column; }
   .login { grid-template-columns: 1fr; }
@@ -374,5 +490,8 @@ th { background: #f8fafc; color: #35465c; }
   .filters { grid-template-columns: 1fr; }
   .visual-grid { grid-template-columns: 1fr; }
   .executive-grid { grid-template-columns: 1fr; }
+  .pipeline { grid-template-columns: 1fr; }
+  .pipeline b { display: none; }
+  .gantt-row { grid-template-columns: 1fr; }
   table { font-size: 12px; }
 }
