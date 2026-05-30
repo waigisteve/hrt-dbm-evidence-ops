@@ -46,7 +46,7 @@ Object.values(filters).forEach(filter => {
 });
 
 async function load() {
-  const response = await fetch(`data.json?ts=${Date.now()}`);
+  const response = await fetch(`/dashboard/data.json?ts=${Date.now()}`);
   latestData = await response.json();
   populateFilters(latestData.investigations || []);
   render();
@@ -357,7 +357,7 @@ function renderMonitoring(rows) {
 function renderMedia(rows) {
   content.innerHTML = `<div class="media-grid">${rows.map(row => `
     <article class="media-card">
-      <img src="../${row.preview_path}" alt="${escapeHtml(row.original_filename)} preview">
+      <img src="/${normalisePreviewPath(row.preview_path)}" alt="${escapeHtml(row.original_filename)} preview">
       <div class="body">
         <strong>${escapeHtml(row.original_filename)}</strong>
         <p>${row.incident_code} | ${human(row.media_type)}</p>
@@ -365,6 +365,10 @@ function renderMedia(rows) {
       </div>
     </article>
   `).join("")}</div>`;
+}
+
+function normalisePreviewPath(path) {
+  return String(path || "").replace(/^\.\.\//, "");
 }
 
 function renderEvidence(rows) {
