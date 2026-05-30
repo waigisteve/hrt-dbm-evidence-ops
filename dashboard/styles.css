@@ -129,7 +129,7 @@ body[data-role="monitoring"] .panel-head { border-left: 6px solid var(--risk); }
 
 .visual-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
   gap: 12px;
   margin-bottom: 16px;
 }
@@ -151,34 +151,6 @@ body[data-role="monitoring"] .panel-head { border-left: 6px solid var(--risk); }
 canvas {
   max-width: 100%;
   height: auto;
-}
-
-.heatmap {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
-  gap: 8px;
-}
-
-.heat-cell {
-  min-height: 72px;
-  padding: 8px;
-  border-radius: 6px;
-  color: #ffffff;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  text-align: left;
-  border: 0;
-  cursor: pointer;
-}
-
-.heat-cell strong {
-  font-size: 13px;
-}
-
-.heat-cell span {
-  font-size: 12px;
-  opacity: 0.9;
 }
 
 .kpi, .panel {

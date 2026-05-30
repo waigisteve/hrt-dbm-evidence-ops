@@ -180,12 +180,10 @@ function renderCharts(rows) {
   const profile = visualProfile(activeRole, rows);
   document.querySelector("#media-chart").closest(".chart-panel").querySelector("h2").textContent = profile.leftTitle;
   document.querySelector("#verification-chart").closest(".chart-panel").querySelector("h2").textContent = profile.middleTitle;
-  document.querySelector("#heatmap").closest(".chart-panel").querySelector("h2").textContent = profile.rightTitle;
   if (profile.leftType === "donut") drawDonut("media-chart", profile.leftData);
   else drawBars("media-chart", profile.leftData);
   if (profile.middleType === "donut") drawDonut("verification-chart", profile.middleData);
   else drawBars("verification-chart", profile.middleData);
-  renderHeatmap(incidentSummary(rows));
 }
 
 function visualProfile(role, rows) {
@@ -200,8 +198,7 @@ function visualProfile(role, rows) {
         { label: "ready", value: rows.filter(isReady).length },
         { label: "open work", value: rows.filter(row => !isReady(row)).length },
         { label: "restricted", value: rows.filter(row => row.access_classification === "restricted").length }
-      ],
-      rightTitle: "Case Risk Heatmap"
+      ]
     };
   }
   if (role === "legal") {
@@ -215,8 +212,7 @@ function visualProfile(role, rows) {
         { label: "ready", value: rows.filter(isReady).length },
         { label: "custody gaps", value: rows.filter(row => Number(row.custody_events) === 0).length },
         { label: "needs review", value: rows.filter(row => ["needs_review", "not_reviewed"].includes(row.legal_status)).length }
-      ],
-      rightTitle: "Matter Readiness Heatmap"
+      ]
     };
   }
   if (role === "data_protection" || role === "monitoring") {
@@ -230,8 +226,7 @@ function visualProfile(role, rows) {
         { label: "custody gaps", value: rows.filter(row => Number(row.custody_events) === 0).length },
         { label: "restricted", value: rows.filter(row => row.access_classification === "restricted").length },
         { label: "unverified", value: rows.filter(row => row.verification_status === "unverified").length }
-      ],
-      rightTitle: "Compliance Heatmap"
+      ]
     };
   }
   if (role === "ai") {
@@ -245,8 +240,7 @@ function visualProfile(role, rows) {
         { label: "transcription", value: rows.filter(row => row.media_type === "video" || row.media_type === "audio").length },
         { label: "extraction", value: rows.filter(row => row.media_type === "document").length },
         { label: "visual triage", value: rows.filter(row => row.media_type === "photo").length }
-      ],
-      rightTitle: "AI Risk Heatmap"
+      ]
     };
   }
   if (role === "partners") {
@@ -260,8 +254,7 @@ function visualProfile(role, rows) {
         { label: "custody follow-up", value: rows.filter(row => Number(row.custody_events) === 0).length },
         { label: "verification pending", value: rows.filter(row => row.verification_status === "unverified").length },
         { label: "restricted", value: rows.filter(row => row.access_classification === "restricted").length }
-      ],
-      rightTitle: "Masked Area Heatmap"
+      ]
     };
   }
   return {
@@ -270,8 +263,7 @@ function visualProfile(role, rows) {
     leftData: countBy(rows, "media_type"),
     middleTitle: "Verification Pipeline",
     middleType: "bars",
-    middleData: countBy(rows, "verification_status"),
-    rightTitle: "Operational Risk Heatmap"
+    middleData: countBy(rows, "verification_status")
   };
 }
 
@@ -329,33 +321,6 @@ function legend(ctx, rows, x, y) {
     ctx.font = "12px Arial";
     ctx.fillText(`${human(row.label)} (${row.value})`, x + 18, y + 11 + index * 24);
   });
-}
-
-function renderHeatmap(rows) {
-  const heatmap = document.getElementById("heatmap");
-  heatmap.innerHTML = rows.map(row => {
-    const score = row.items ? (row.restricted + row.items - row.ready) / (row.items * 2) : 0;
-    const color = heatColor(score);
-    return `<button class="heat-cell" style="background:${color}" data-incident="${escapeHtml(row.incident_code)}">
-      <strong>${row.incident_code}</strong>
-      <span>${row.items} items | ${row.restricted} restricted</span>
-    </button>`;
-  }).join("") || `<div class="empty">No heatmap data.</div>`;
-  heatmap.querySelectorAll(".heat-cell").forEach(cell => {
-    cell.addEventListener("click", () => {
-      filters.incident.value = cell.dataset.incident;
-      activeRole = "investigations";
-      roleSelect.value = "investigations";
-      syncRoleNav();
-      render();
-    });
-  });
-}
-
-function heatColor(score) {
-  if (score > 0.7) return "#b42318";
-  if (score > 0.4) return "#b76e00";
-  return "#16724a";
 }
 
 function renderRole(data) {

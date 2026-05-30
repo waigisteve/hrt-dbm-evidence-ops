@@ -28,7 +28,7 @@ DuckDB OLAP
 
 Dashboard
   Filtered stakeholder views:
-  tables, charts, heatmap, media cards, monitoring cards, AI review queue
+  tables, charts, media cards, monitoring cards, AI review queue
 ```
 
 ## Why NoSQL for Media Objects
@@ -70,13 +70,12 @@ The dashboard now supports:
 - KPI cards.
 - Media mix donut chart.
 - Verification status bar chart.
-- Incident risk heatmap.
 - Stakeholder-specific tables.
 - NoSQL media gallery.
 - Monitoring cards.
 - AI review queue.
 
-Filtering applies consistently across KPIs, charts, heatmap, and stakeholder views.
+Filtering applies consistently across KPIs, charts, and stakeholder views.
 
 ## AI Integration
 
