@@ -34,6 +34,8 @@ Then:
 ```bash
 cd "/mnt/c/Users/Hp/Desktop/dba/2026/Videre_DBM_Prep_Pack"
 python3 scripts/refresh_olap.py
+python3 scripts/sync_media_catalog.py
+python3 scripts/refresh_olap.py
 python3 dashboard/server.py
 ```
 
@@ -73,6 +75,27 @@ python3 scripts/simulate_continuous_intake.py --minutes 2 --interval 15
 
 The simulator continuously inserts new sensitive video, image, and document records into PostgreSQL, then refreshes DuckDB and the dashboard JSON.
 
+## NoSQL Media Store
+
+The demo includes a file-backed NoSQL-style media catalog:
+
+```text
+media_store/catalog.jsonl
+media_store/objects/
+media_store/quarantine/
+```
+
+Run:
+
+```bash
+python3 scripts/sync_media_catalog.py
+python3 scripts/refresh_olap.py
+```
+
+The catalog stores one JSON document per media object. Each document includes media ID, incident code, original filename, object path, preview path, SHA-256 hash, detected MIME type, byte size, and safety scan status.
+
+For safety, sample media objects are generated locally as synthetic SVG/text placeholders. The scanner allowlists safe demo extensions and flags blocked or unexpected extensions. This demonstrates the architecture without downloading unknown internet media or committing risky binaries.
+
 ## How to Explain the OLTP/OLAP Split
 
 Use this phrasing:
@@ -98,6 +121,21 @@ Controls:
 - AI output labelled as AI-assisted.
 - Tool, version, reviewer, and decision logged.
 - DPIA triggered for systematic processing of sensitive data.
+
+## Monitoring Coverage
+
+The Monitoring tab tracks:
+
+- Restricted-data concentration.
+- Custody gap rate.
+- Unverified backlog.
+- Single-source skew.
+- Dashboard refresh freshness.
+- ETL refresh duration.
+
+Interview framing:
+
+> I would monitor not only system health, but also evidentiary health. A database can be online and still produce weak findings if custody gaps, source skew, stale verification, or unsafe access patterns are not visible.
 
 Interview phrasing:
 

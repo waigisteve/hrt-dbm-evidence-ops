@@ -21,6 +21,8 @@
         <option value="partners">CSO Partners</option>
         <option value="data_protection">Data Protection</option>
         <option value="ai">AI Review</option>
+        <option value="media">Media Store</option>
+        <option value="monitoring">Monitoring</option>
       </select>
       <input id="password" type="password" value="demo" aria-label="Password">
       <button id="login">Open</button>
@@ -29,6 +31,30 @@
 
   <main>
     <section class="kpis" id="kpis"></section>
+    <section class="filters" id="filters">
+      <input id="search" type="search" placeholder="Search file, incident, source">
+      <select id="incident-filter"><option value="">All incidents</option></select>
+      <select id="type-filter"><option value="">All media types</option></select>
+      <select id="verification-filter"><option value="">All verification states</option></select>
+      <select id="legal-filter"><option value="">All legal states</option></select>
+      <select id="access-filter"><option value="">All access classes</option></select>
+      <select id="safety-filter"><option value="">All safety states</option></select>
+      <button id="clear-filters">Clear</button>
+    </section>
+    <section class="visual-grid">
+      <div class="panel chart-panel">
+        <h2>Media Mix</h2>
+        <canvas id="media-chart" width="320" height="220"></canvas>
+      </div>
+      <div class="panel chart-panel">
+        <h2>Verification</h2>
+        <canvas id="verification-chart" width="320" height="220"></canvas>
+      </div>
+      <div class="panel chart-panel">
+        <h2>Risk Heatmap</h2>
+        <div id="heatmap" class="heatmap"></div>
+      </div>
+    </section>
     <section class="panel">
       <div class="panel-head">
         <div>

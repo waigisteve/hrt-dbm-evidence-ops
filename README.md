@@ -34,10 +34,13 @@ psql -d videre_prep -f sql/analysis_queries.sql
 5. Use `live_dashboard_runbook.md`.
    - Run a live stakeholder dashboard with PostgreSQL OLTP, DuckDB OLAP, simulated logins, and AI review.
 
-6. Use `source_references.md`.
+6. Use `nosql_media_and_monitoring_design.md`.
+   - Explain the NoSQL media catalog, safe media scaffolding, visual analytics, AI controls, and monitoring posture.
+
+7. Use `source_references.md`.
    - Ground your answers in Videre's public model and recognised evidence-management standards.
 
-7. Follow `practice_schedule.md`.
+8. Follow `practice_schedule.md`.
    - The schedule gives a 3-week route from research to final mock interview.
 
 ## Positioning Statement

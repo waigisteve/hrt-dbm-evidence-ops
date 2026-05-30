@@ -6,6 +6,7 @@ from __future__ import annotations
 import csv
 import json
 import subprocess
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -16,6 +17,7 @@ OLAP_DIR = ROOT / "olap"
 DASHBOARD_DIR = ROOT / "dashboard"
 OLAP_DB = OLAP_DIR / "videre_olap.duckdb"
 SNAPSHOT_JSON = DASHBOARD_DIR / "data.json"
+MEDIA_CATALOG = ROOT / "media_store" / "catalog.jsonl"
 PG_DB = "videre_prep"
 
 
@@ -26,8 +28,10 @@ def run(command: list[str], input_text: str | None = None) -> str:
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        check=True,
     )
+    if result.returncode != 0:
+        detail = result.stderr.strip() or result.stdout.strip()
+        raise RuntimeError(f"Command failed: {' '.join(command)}\n{detail}")
     return result.stdout
 
 
@@ -149,6 +153,21 @@ def dashboard_snapshot(rows: list[dict[str, str]]) -> dict[str, Any]:
         for row in rows
         if row["media_type"] in {"video", "audio", "document", "photo"} and row["verification_status"] == "unverified"
     ]
+    media_catalog = load_media_catalog()
+    media_by_id = {str(item["media_id"]): item for item in media_catalog}
+    for row in rows:
+        catalog = media_by_id.get(str(row["media_id"]))
+        if catalog:
+            row["preview_path"] = "../" + catalog["preview_path"]
+            row["safe_status"] = catalog["safe_status"]
+            row["detected_mime"] = catalog["detected_mime"]
+        else:
+            row["preview_path"] = ""
+            row["safe_status"] = "not_scanned"
+            row["detected_mime"] = "unknown"
+
+    charts = build_charts(rows, ready, restricted, custody_gaps, unverified)
+    monitoring = build_monitoring(rows)
 
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -166,6 +185,89 @@ def dashboard_snapshot(rows: list[dict[str, str]]) -> dict[str, Any]:
         "partners": custody_gaps,
         "data_protection": restricted,
         "ai": ai_queue,
+        "media": media_catalog,
+        "monitoring": monitoring,
+        "charts": charts,
+    }
+
+
+def load_media_catalog() -> list[dict[str, Any]]:
+    if not MEDIA_CATALOG.exists():
+        return []
+    return [json.loads(line) for line in MEDIA_CATALOG.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+
+def count_by(rows: list[dict[str, str]], key: str) -> list[dict[str, Any]]:
+    counts: dict[str, int] = {}
+    for row in rows:
+        counts[row[key]] = counts.get(row[key], 0) + 1
+    return [{"label": label, "value": value} for label, value in sorted(counts.items())]
+
+
+def build_charts(
+    rows: list[dict[str, str]],
+    ready: list[dict[str, str]],
+    restricted: list[dict[str, str]],
+    custody_gaps: list[dict[str, str]],
+    unverified: list[dict[str, str]],
+) -> dict[str, Any]:
+    return {
+        "media_type": count_by(rows, "media_type"),
+        "verification_status": count_by(rows, "verification_status"),
+        "legal_status": count_by(rows, "legal_status"),
+        "risk_breakdown": [
+            {"label": "Ready", "value": len(ready)},
+            {"label": "Restricted", "value": len(restricted)},
+            {"label": "Custody gaps", "value": len(custody_gaps)},
+            {"label": "Unverified", "value": len(unverified)},
+        ],
+        "incident_heatmap": [
+            {
+                "incident_code": code,
+                "title": items[0]["title"],
+                "restricted": sum(1 for row in items if row["access_classification"] == "restricted"),
+                "custody_gaps": sum(1 for row in items if int(row["custody_events"]) == 0),
+                "unverified": sum(1 for row in items if row["verification_status"] == "unverified"),
+                "total": len(items),
+            }
+            for code, items in group_by_incident(rows).items()
+        ],
+    }
+
+
+def group_by_incident(rows: list[dict[str, str]]) -> dict[str, list[dict[str, str]]]:
+    grouped: dict[str, list[dict[str, str]]] = {}
+    for row in rows:
+        grouped.setdefault(row["incident_code"], []).append(row)
+    return grouped
+
+
+def build_monitoring(rows: list[dict[str, str]]) -> list[dict[str, Any]]:
+    total = max(1, len(rows))
+    restricted_ratio = sum(1 for row in rows if row["access_classification"] == "restricted") / total
+    custody_gap_ratio = sum(1 for row in rows if int(row["custody_events"]) == 0) / total
+    unverified_ratio = sum(1 for row in rows if row["verification_status"] == "unverified") / total
+    source_counts: dict[str, int] = {}
+    for row in rows:
+        source_counts[row["source_code"]] = source_counts.get(row["source_code"], 0) + 1
+    max_source_share = max(source_counts.values(), default=0) / total
+
+    return [
+        monitor("restricted data concentration", restricted_ratio, 0.7, "High restricted-data concentration requires tight access review."),
+        monitor("custody gap rate", custody_gap_ratio, 0.2, "Custody gaps should trigger intake remediation and partner coaching."),
+        monitor("unverified backlog", unverified_ratio, 0.6, "Large unverified backlog can skew stakeholder interpretation."),
+        monitor("single-source skew", max_source_share, 0.35, "Overdependence on one source can weaken corroboration."),
+        monitor("dashboard freshness", 0.0, 1.0, "ETL completed for this snapshot."),
+    ]
+
+
+def monitor(name: str, value: float, threshold: float, message: str) -> dict[str, Any]:
+    return {
+        "name": name,
+        "value": round(value, 3),
+        "threshold": threshold,
+        "status": "alert" if value > threshold else "ok",
+        "message": message,
     }
 
 
@@ -183,6 +285,7 @@ def ai_suggestion(row: dict[str, str]) -> str:
 
 
 def main() -> None:
+    started = time.perf_counter()
     sql = """
 SELECT
     m.media_id,
@@ -221,7 +324,17 @@ ORDER BY m.media_id;
 """
     rows = psql_csv(sql)
     rebuild_olap(rows)
-    SNAPSHOT_JSON.write_text(json.dumps(dashboard_snapshot(rows), indent=2), encoding="utf-8")
+    snapshot = dashboard_snapshot(rows)
+    snapshot["monitoring"].append(
+        {
+            "name": "etl refresh seconds",
+            "value": round(time.perf_counter() - started, 3),
+            "threshold": 5.0,
+            "status": "ok" if (time.perf_counter() - started) <= 5.0 else "alert",
+            "message": "Refresh duration from PostgreSQL to DuckDB and dashboard JSON.",
+        }
+    )
+    SNAPSHOT_JSON.write_text(json.dumps(snapshot, indent=2), encoding="utf-8")
     print(f"Refreshed OLAP and dashboard snapshot with {len(rows)} evidence records.")
 
 

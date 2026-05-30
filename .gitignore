@@ -4,6 +4,12 @@ olap/*.duckdb
 olap/*.wal
 postgres.log
 dashboard/data.json
+media_store/catalog.jsonl
+media_store/objects/
+media_store/quarantine/
+!media_store/.gitkeep
+!media_store/objects/.gitkeep
+!media_store/quarantine/.gitkeep
 
 # Python runtime artifacts
 __pycache__/

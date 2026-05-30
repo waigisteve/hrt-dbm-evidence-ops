@@ -115,6 +115,8 @@ VALUES (currval('media_files_media_id_seq'), currval('incidents_incident_id_seq'
 
     psql("\n".join(statements))
     run(["python3", "scripts/refresh_olap.py"])
+    run(["python3", "scripts/sync_media_catalog.py"])
+    run(["python3", "scripts/refresh_olap.py"])
     print(f"{datetime.now().isoformat(timespec='seconds')} inserted {incident_code} with {media_count} items.")
 
 

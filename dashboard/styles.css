@@ -66,6 +66,65 @@ main { padding: 22px; }
   margin-bottom: 16px;
 }
 
+.filters {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.5fr) repeat(6, minmax(130px, 1fr)) 80px;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.filters input,
+.filters select {
+  width: 100%;
+}
+
+.visual-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.chart-panel {
+  padding: 14px;
+  min-height: 280px;
+}
+
+.chart-panel h2 {
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+.heatmap {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+  gap: 8px;
+}
+
+.heat-cell {
+  min-height: 72px;
+  padding: 8px;
+  border-radius: 6px;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.heat-cell strong {
+  font-size: 13px;
+}
+
+.heat-cell span {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
 .kpi, .panel {
   background: var(--panel);
   border: 1px solid var(--line);
@@ -116,9 +175,65 @@ th { background: #f8fafc; color: #35465c; }
 
 .empty { padding: 24px; color: var(--muted); }
 
+.media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  padding: 14px;
+}
+
+.media-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.media-card img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: #e8eef5;
+}
+
+.media-card .body {
+  padding: 10px;
+}
+
+.media-card strong {
+  display: block;
+  margin-bottom: 6px;
+  overflow-wrap: anywhere;
+}
+
+.monitor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  padding: 14px;
+}
+
+.monitor-card {
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--ok);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.monitor-card.alert {
+  border-left-color: var(--risk);
+}
+
+.monitor-card strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
 @media (max-width: 900px) {
   .topbar { align-items: stretch; flex-direction: column; }
   .login { grid-template-columns: 1fr; }
   .kpis { grid-template-columns: repeat(2, 1fr); }
+  .filters { grid-template-columns: 1fr; }
+  .visual-grid { grid-template-columns: 1fr; }
   table { font-size: 12px; }
 }
