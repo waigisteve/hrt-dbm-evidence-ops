@@ -5,6 +5,7 @@ const content = document.getElementById("content");
 const title = document.getElementById("view-title");
 const note = document.getElementById("view-note");
 const updated = document.getElementById("updated");
+const roleButtons = Array.from(document.querySelectorAll(".role-button"));
 
 const filters = {
   search: document.getElementById("search"),
@@ -32,7 +33,17 @@ let latestData = null;
 
 loginButton.addEventListener("click", () => {
   activeRole = roleSelect.value;
+  syncRoleNav();
   render();
+});
+
+roleButtons.forEach(button => {
+  button.addEventListener("click", () => {
+    activeRole = button.dataset.role;
+    roleSelect.value = activeRole;
+    syncRoleNav();
+    render();
+  });
 });
 
 document.getElementById("clear-filters").addEventListener("click", () => {
@@ -55,6 +66,8 @@ async function load() {
 
 function render() {
   if (!latestData) return;
+  document.body.dataset.role = activeRole;
+  syncRoleNav();
   const filtered = filterRows(latestData.investigations || []);
   const viewData = withFilteredData(latestData, filtered);
   renderKpis(kpiFromRows(filtered));
@@ -236,6 +249,7 @@ function renderHeatmap(rows) {
       filters.incident.value = cell.dataset.incident;
       activeRole = "investigations";
       roleSelect.value = "investigations";
+      syncRoleNav();
       render();
     });
   });
@@ -292,6 +306,7 @@ function renderLeadership(rows) {
       filters.incident.value = card.dataset.incident;
       activeRole = "investigations";
       roleSelect.value = "investigations";
+      syncRoleNav();
       render();
     });
   });
@@ -398,6 +413,12 @@ function legalAction(row) {
   if (row.legal_status === "needs_review" || row.legal_status === "not_reviewed") return "Schedule legal review";
   if (row.legal_status === "approved_for_legal_use") return "Eligible for controlled evidence pack";
   return "Restricted: legal sign-off required";
+}
+
+function syncRoleNav() {
+  roleButtons.forEach(button => {
+    button.classList.toggle("active", button.dataset.role === activeRole);
+  });
 }
 
 function table(headers, rows) {

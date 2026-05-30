@@ -59,6 +59,55 @@ button {
 
 main { padding: 22px; }
 
+.role-nav {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(170px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.role-button {
+  min-height: 78px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-left: 5px solid #8fa3b8;
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--ink);
+  text-align: left;
+}
+
+.role-button strong,
+.role-button span {
+  display: block;
+}
+
+.role-button strong {
+  font-size: 15px;
+  margin-bottom: 5px;
+}
+
+.role-button span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.role-button.active {
+  border-color: var(--blue);
+  border-left-color: var(--blue);
+  box-shadow: 0 0 0 2px rgba(29, 95, 153, 0.12);
+}
+
+body[data-role="leadership"] .panel-head { border-left: 6px solid var(--blue); }
+body[data-role="investigations"] .panel-head { border-left: 6px solid var(--warn); }
+body[data-role="legal"] .panel-head { border-left: 6px solid var(--ok); }
+body[data-role="partners"] .panel-head { border-left: 6px solid #0f766e; }
+body[data-role="data_protection"] .panel-head { border-left: 6px solid var(--risk); }
+body[data-role="ai"] .panel-head { border-left: 6px solid #6f42c1; }
+body[data-role="media"] .panel-head { border-left: 6px solid #607086; }
+body[data-role="monitoring"] .panel-head { border-left: 6px solid var(--risk); }
+
 .kpis {
   display: grid;
   grid-template-columns: repeat(6, minmax(120px, 1fr));
@@ -317,6 +366,7 @@ th { background: #f8fafc; color: #35465c; }
   .topbar { align-items: stretch; flex-direction: column; }
   .login { grid-template-columns: 1fr; }
   .kpis { grid-template-columns: repeat(2, 1fr); }
+  .role-nav { grid-template-columns: 1fr; }
   .filters { grid-template-columns: 1fr; }
   .visual-grid { grid-template-columns: 1fr; }
   .executive-grid { grid-template-columns: 1fr; }
