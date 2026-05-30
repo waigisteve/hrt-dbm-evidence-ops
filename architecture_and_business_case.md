@@ -135,7 +135,12 @@ diagrams/videre_schema_erd.mmd
 diagrams/videre_oltp_olap_architecture.mmd
 ```
 
+For dbdiagram.io, use DBML:
+
+```text
+diagrams/videre_schema.dbml
+```
+
 ## Database Manager Interview Framing
 
 > My architecture keeps operational evidence handling separate from reporting and AI-assisted triage. PostgreSQL protects the authoritative evidence metadata and custody trail. The NoSQL/object-store layer handles media objects safely. DuckDB provides a rebuildable analytics layer for stakeholder dashboards. This gives teams practical visibility while protecting evidence integrity, source safety, and legal defensibility.
-

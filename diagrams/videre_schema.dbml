@@ -1,0 +1,222 @@
+// DBML schema for dbdiagram.io
+// Videre-style investigative evidence system
+
+Enum sensitivity_level {
+  low
+  medium
+  high
+  restricted
+}
+
+Enum verification_status {
+  unverified
+  partially_verified
+  verified
+  disputed
+  rejected
+}
+
+Enum custody_event_type {
+  collected
+  transferred
+  ingested
+  reviewed
+  exported
+  archived
+  deleted
+}
+
+Enum legal_review_status {
+  not_reviewed
+  needs_review
+  approved_for_legal_use
+  restricted_use
+  do_not_use
+}
+
+Table organisations {
+  organisation_id bigint [pk, increment]
+  organisation_name text [not null]
+  organisation_type text [not null]
+  country_code char(2)
+  security_notes text
+}
+
+Table sources {
+  source_id bigint [pk, increment]
+  source_code text [not null, unique]
+  source_type text [not null]
+  partner_organisation_id bigint
+  reliability_rating smallint
+  risk_level sensitivity_level [not null, default: 'high']
+  contact_restricted boolean [not null, default: true]
+  notes text
+}
+
+Table persons {
+  person_id bigint [pk, increment]
+  person_code text [not null, unique]
+  person_role text [not null]
+  sensitivity sensitivity_level [not null, default: 'restricted']
+  protection_notes text
+}
+
+Table locations {
+  location_id bigint [pk, increment]
+  country_code char(2) [not null]
+  admin_area text
+  locality text
+  latitude numeric(9,6)
+  longitude numeric(9,6)
+  geolocation_confidence smallint
+  notes text
+}
+
+Table incidents {
+  incident_id bigint [pk, increment]
+  incident_code text [not null, unique]
+  title text [not null]
+  incident_type text [not null]
+  occurred_at timestamptz
+  location_id bigint
+  summary text
+  verification_status verification_status [not null, default: 'unverified']
+  sensitivity sensitivity_level [not null, default: 'high']
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table alleged_actors {
+  alleged_actor_id bigint [pk, increment]
+  actor_name text [not null]
+  actor_type text [not null]
+  notes text
+}
+
+Table incident_alleged_actors {
+  incident_id bigint [not null]
+  alleged_actor_id bigint [not null]
+  confidence smallint
+  basis text [not null]
+
+  indexes {
+    (incident_id, alleged_actor_id) [pk]
+  }
+}
+
+Table media_files {
+  media_id bigint [pk, increment]
+  external_video_system_id text [unique]
+  incident_id bigint
+  source_id bigint
+  original_filename text [not null]
+  media_type text [not null]
+  file_sha256 char(64) [not null]
+  captured_at timestamptz
+  received_at timestamptz [not null]
+  storage_uri text [not null]
+  access_classification sensitivity_level [not null, default: 'high']
+  retention_category text [not null]
+  verification_status verification_status [not null, default: 'unverified']
+  legal_status legal_review_status [not null, default: 'not_reviewed']
+  metadata_json jsonb [not null]
+  created_at timestamptz [not null]
+}
+
+Table verification_steps {
+  verification_step_id bigint [pk, increment]
+  media_id bigint
+  incident_id bigint
+  step_type text [not null]
+  method text [not null]
+  result verification_status [not null]
+  confidence smallint
+  reviewer_code text [not null]
+  reviewed_at timestamptz [not null]
+  notes text
+}
+
+Table custody_events {
+  custody_event_id bigint [pk, increment]
+  media_id bigint [not null]
+  event_type custody_event_type [not null]
+  event_at timestamptz [not null]
+  actor_code text [not null]
+  from_holder text
+  to_holder text
+  transfer_method text
+  event_hash char(64)
+  reason text [not null]
+  notes text
+  created_at timestamptz [not null]
+}
+
+Table access_logs {
+  access_log_id bigint [pk, increment]
+  media_id bigint
+  user_code text [not null]
+  action text [not null]
+  purpose text [not null]
+  accessed_at timestamptz [not null]
+  ip_context text
+}
+
+Table exports {
+  export_id bigint [pk, increment]
+  media_id bigint [not null]
+  recipient_organisation_id bigint
+  purpose text [not null]
+  approved_by text [not null]
+  exported_at timestamptz [not null]
+  export_format text [not null]
+  redaction_applied boolean [not null, default: true]
+  export_sha256 char(64)
+  transfer_method text [not null]
+  notes text
+}
+
+Table tags {
+  tag_id bigint [pk, increment]
+  tag_name text [not null, unique]
+  tag_type text [not null]
+}
+
+Table media_tags {
+  media_id bigint [not null]
+  tag_id bigint [not null]
+  tagged_by text [not null]
+  tagged_at timestamptz [not null]
+
+  indexes {
+    (media_id, tag_id) [pk]
+  }
+}
+
+Table legal_reviews {
+  legal_review_id bigint [pk, increment]
+  media_id bigint
+  incident_id bigint
+  status legal_review_status [not null]
+  reviewer_code text [not null]
+  reviewed_at timestamptz [not null]
+  restrictions text
+  evidentiary_notes text
+}
+
+Ref: sources.partner_organisation_id > organisations.organisation_id
+Ref: incidents.location_id > locations.location_id
+Ref: incident_alleged_actors.incident_id > incidents.incident_id
+Ref: incident_alleged_actors.alleged_actor_id > alleged_actors.alleged_actor_id
+Ref: media_files.incident_id > incidents.incident_id
+Ref: media_files.source_id > sources.source_id
+Ref: verification_steps.media_id > media_files.media_id
+Ref: verification_steps.incident_id > incidents.incident_id
+Ref: custody_events.media_id > media_files.media_id
+Ref: access_logs.media_id > media_files.media_id
+Ref: exports.media_id > media_files.media_id
+Ref: exports.recipient_organisation_id > organisations.organisation_id
+Ref: media_tags.media_id > media_files.media_id
+Ref: media_tags.tag_id > tags.tag_id
+Ref: legal_reviews.media_id > media_files.media_id
+Ref: legal_reviews.incident_id > incidents.incident_id
+
