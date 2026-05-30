@@ -141,6 +141,12 @@ For dbdiagram.io, use DBML:
 diagrams/videre_schema.dbml
 ```
 
+Published dbdiagram link:
+
+```text
+https://dbdiagram.io/d/hrights-ngo-schema-6a1ac16ff15b4b045235d88d
+```
+
 ## Database Manager Interview Framing
 
 > My architecture keeps operational evidence handling separate from reporting and AI-assisted triage. PostgreSQL protects the authoritative evidence metadata and custody trail. The NoSQL/object-store layer handles media objects safely. DuckDB provides a rebuildable analytics layer for stakeholder dashboards. This gives teams practical visibility while protecting evidence integrity, source safety, and legal defensibility.

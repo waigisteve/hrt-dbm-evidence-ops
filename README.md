@@ -36,6 +36,7 @@ psql -d videre_prep -f sql/analysis_queries.sql
 
 6. Use `architecture_and_business_case.md`.
    - Explain the OLTP/OLAP architecture, business workflow, achieved outcomes, gaps, and diagrams.net assets.
+   - dbdiagram schema: https://dbdiagram.io/d/hrights-ngo-schema-6a1ac16ff15b4b045235d88d
 
 7. Use `nosql_media_and_monitoring_design.md`.
    - Explain the NoSQL media catalog, safe media scaffolding, visual analytics, AI controls, and monitoring posture.
