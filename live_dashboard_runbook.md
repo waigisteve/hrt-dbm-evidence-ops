@@ -142,12 +142,27 @@ Controls:
 
 The Monitoring tab tracks:
 
-- Restricted-data concentration.
-- Custody gap rate.
-- Unverified backlog.
-- Single-source skew.
+- Portfolio-wide restricted-data concentration, custody gap rate, unverified backlog, and single-source skew.
+- Recent intake window size, using the latest 30 evidence records.
+- Recent custody gap rate, restricted concentration, unverified intake, verification progress, legal-ready yield, and single-source skew.
 - Dashboard refresh freshness.
 - ETL refresh duration.
+
+The recent-window checks are designed to move visibly during a live demo. The full database can become stable as it grows, but the newest 30 records should change when the simulator inserts a fresh random batch.
+
+To trigger a noticeable Monitoring tab change:
+
+```bash
+python3 scripts/simulate_continuous_intake.py --minutes 2 --interval 15
+```
+
+Watch for these cards to move between percentages and alert states:
+
+- Recent custody gap rate.
+- Recent unverified intake.
+- Recent verification progress.
+- Recent legal-ready yield.
+- Recent single-source skew.
 
 Interview framing:
 

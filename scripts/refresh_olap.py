@@ -244,6 +244,8 @@ def group_by_incident(rows: list[dict[str, str]]) -> dict[str, list[dict[str, st
 
 def build_monitoring(rows: list[dict[str, str]]) -> list[dict[str, Any]]:
     total = max(1, len(rows))
+    recent = rows[-30:] if len(rows) > 30 else rows
+    recent_total = max(1, len(recent))
     restricted_ratio = sum(1 for row in rows if row["access_classification"] == "restricted") / total
     custody_gap_ratio = sum(1 for row in rows if int(row["custody_events"]) == 0) / total
     unverified_ratio = sum(1 for row in rows if row["verification_status"] == "unverified") / total
@@ -252,11 +254,87 @@ def build_monitoring(rows: list[dict[str, str]]) -> list[dict[str, Any]]:
         source_counts[row["source_code"]] = source_counts.get(row["source_code"], 0) + 1
     max_source_share = max(source_counts.values(), default=0) / total
 
+    recent_source_counts: dict[str, int] = {}
+    for row in recent:
+        recent_source_counts[row["source_code"]] = recent_source_counts.get(row["source_code"], 0) + 1
+    recent_source_share = max(recent_source_counts.values(), default=0) / recent_total
+    recent_custody_gap_ratio = sum(1 for row in recent if int(row["custody_events"]) == 0) / recent_total
+    recent_unverified_ratio = sum(1 for row in recent if row["verification_status"] == "unverified") / recent_total
+    recent_restricted_ratio = sum(1 for row in recent if row["access_classification"] == "restricted") / recent_total
+    recent_progress_ratio = (
+        sum(1 for row in recent if row["verification_status"] in {"partially_verified", "verified"}) / recent_total
+    )
+    recent_legal_ready_ratio = (
+        sum(1 for row in recent if row["legal_status"] == "approved_for_legal_use") / recent_total
+    )
+
     return [
-        monitor("restricted data concentration", restricted_ratio, 0.7, "High restricted-data concentration requires tight access review."),
-        monitor("custody gap rate", custody_gap_ratio, 0.2, "Custody gaps should trigger intake remediation and partner coaching."),
-        monitor("unverified backlog", unverified_ratio, 0.6, "Large unverified backlog can skew stakeholder interpretation."),
-        monitor("single-source skew", max_source_share, 0.35, "Overdependence on one source can weaken corroboration."),
+        monitor(
+            "overall restricted concentration",
+            restricted_ratio,
+            0.7,
+            "Portfolio-wide restricted-data concentration requires tight access review.",
+        ),
+        monitor(
+            "overall custody gap rate",
+            custody_gap_ratio,
+            0.2,
+            "Portfolio-wide custody gaps should trigger intake remediation and partner coaching.",
+        ),
+        monitor(
+            "overall unverified backlog",
+            unverified_ratio,
+            0.6,
+            "Portfolio-wide unverified backlog can skew stakeholder interpretation.",
+        ),
+        monitor(
+            "overall single-source skew",
+            max_source_share,
+            0.35,
+            "Portfolio-wide overdependence on one source can weaken corroboration.",
+        ),
+        monitor_count(
+            "recent intake window items",
+            len(recent),
+            45,
+            "Latest records included in the live monitoring window.",
+        ),
+        monitor(
+            "recent custody gap rate",
+            recent_custody_gap_ratio,
+            0.35,
+            "Latest intake has custody gaps that need rapid remediation.",
+        ),
+        monitor(
+            "recent restricted concentration",
+            recent_restricted_ratio,
+            0.85,
+            "Latest intake is heavily restricted and may need tighter access review.",
+        ),
+        monitor(
+            "recent unverified intake",
+            recent_unverified_ratio,
+            0.75,
+            "Latest intake is creating a verification backlog.",
+        ),
+        monitor_min(
+            "recent verification progress",
+            recent_progress_ratio,
+            0.35,
+            "Latest intake has too little verification progress.",
+        ),
+        monitor_min(
+            "recent legal-ready yield",
+            recent_legal_ready_ratio,
+            0.05,
+            "Latest intake is not yet producing legal-ready evidence.",
+        ),
+        monitor(
+            "recent single-source skew",
+            recent_source_share,
+            0.5,
+            "Latest intake relies too heavily on one source.",
+        ),
         monitor("dashboard freshness", 0.0, 1.0, "ETL completed for this snapshot."),
     ]
 
@@ -268,6 +346,32 @@ def monitor(name: str, value: float, threshold: float, message: str) -> dict[str
         "threshold": threshold,
         "status": "alert" if value > threshold else "ok",
         "message": message,
+        "unit": "ratio",
+        "direction": "max",
+    }
+
+
+def monitor_min(name: str, value: float, threshold: float, message: str) -> dict[str, Any]:
+    return {
+        "name": name,
+        "value": round(value, 3),
+        "threshold": threshold,
+        "status": "alert" if value < threshold else "ok",
+        "message": message,
+        "unit": "ratio",
+        "direction": "min",
+    }
+
+
+def monitor_count(name: str, value: int, threshold: int, message: str) -> dict[str, Any]:
+    return {
+        "name": name,
+        "value": value,
+        "threshold": threshold,
+        "status": "alert" if value > threshold else "ok",
+        "message": message,
+        "unit": "count",
+        "direction": "max",
     }
 
 
@@ -332,6 +436,8 @@ ORDER BY m.media_id;
             "threshold": 5.0,
             "status": "ok" if (time.perf_counter() - started) <= 5.0 else "alert",
             "message": "Refresh duration from PostgreSQL to DuckDB and dashboard JSON.",
+            "unit": "seconds",
+            "direction": "max",
         }
     )
     SNAPSHOT_JSON.write_text(json.dumps(snapshot, indent=2), encoding="utf-8")

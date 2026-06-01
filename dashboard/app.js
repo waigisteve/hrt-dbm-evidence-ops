@@ -441,7 +441,7 @@ function renderMonitoring(rows) {
   content.innerHTML = `${monitorTimeline(rows)}<div class="monitor-grid">${rows.map(row => `
     <div class="monitor-card ${row.status}">
       <strong>${human(row.name)}</strong>
-      <p>Value: ${row.value} | Threshold: ${row.threshold}</p>
+      <p>Value: ${formatMetric(row.value, row.unit)} | Threshold: ${formatMetric(row.threshold, row.unit)}</p>
       <p>${row.message}</p>
     </div>
   `).join("")}</div>`;
@@ -557,10 +557,24 @@ function monitorTimeline(rows) {
   return `<div class="monitor-strip">${rows.map(row => `
     <div class="${row.status}">
       <strong>${human(row.name)}</strong>
-      <i style="width:${Math.min(100, Math.round(Number(row.value) * 100))}%"></i>
-      <span>${row.status}</span>
+      <i style="width:${monitorWidth(row)}%"></i>
+      <span>${row.status} | ${formatMetric(row.value, row.unit)}</span>
     </div>
   `).join("")}</div>`;
+}
+
+function monitorWidth(row) {
+  const value = Number(row.value) || 0;
+  const threshold = Number(row.threshold) || 1;
+  if (row.unit === "ratio") return Math.min(100, Math.round(value * 100));
+  return Math.min(100, Math.round((value / threshold) * 100));
+}
+
+function formatMetric(value, unit) {
+  const number = Number(value);
+  if (unit === "ratio") return `${Math.round(number * 100)}%`;
+  if (unit === "seconds") return `${number.toFixed(2)}s`;
+  return String(value);
 }
 
 function syncRoleNav() {
