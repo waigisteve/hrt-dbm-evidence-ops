@@ -75,6 +75,22 @@ python3 scripts/simulate_continuous_intake.py --minutes 2 --interval 15
 
 The simulator continuously inserts new sensitive video, image, and document records into PostgreSQL, then refreshes DuckDB and the dashboard JSON.
 
+Each simulator run now creates a fresh run ID, for example:
+
+```text
+INC-LIVE-20260601143022-a1b2c3-0001
+SRC-LIVE-20260601143022-a1b2c3-0001
+LIVE-20260601143022-a1b2c3-0001-1
+```
+
+This prevents repeated runs from reusing the same incident, source, media IDs, or hashes. The generated data also varies media types, verification states, legal states, access classes, custody completeness, confidence, and location confidence so the dashboard changes visibly while the simulation runs.
+
+To force a named run for a demonstration:
+
+```bash
+python3 scripts/simulate_continuous_intake.py --minutes 5 --interval 15 --run-id demo-001
+```
+
 ## NoSQL Media Store
 
 The demo includes a file-backed NoSQL-style media catalog:
