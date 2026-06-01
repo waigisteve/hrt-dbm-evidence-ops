@@ -1,5 +1,34 @@
 #!/usr/bin/env python3
-"""Refresh the OLAP DuckDB store and dashboard JSON from PostgreSQL OLTP."""
+"""Refresh the OLAP DuckDB store and dashboard JSON from PostgreSQL OLTP.
+
+Production data-flow represented by this demo:
+
+1. Operational systems write to PostgreSQL OLTP tables.
+   - Closed-source video/evidence platform -> media_files.external_video_system_id,
+     storage_uri, media_type, file hash, received time.
+   - Secure transfer/intake workflow -> custody_events, file_sha256,
+     received_at, transfer method.
+   - Field collection tools -> captured_at, metadata_json, source_id,
+     location and incident context.
+   - Investigator verification workflow -> verification_steps and
+     verification_status.
+   - Legal/case review workflow -> legal_status and export readiness.
+   - Identity/security monitoring -> access_logs in the OLTP schema.
+
+2. This script extracts a reporting-safe evidence fact set from PostgreSQL.
+   The operational database remains the source of truth; this script builds a
+   rebuildable analytics layer and browser snapshot.
+
+3. DuckDB OLAP receives the reporting fact table for dashboard analytics.
+
+4. The AI recommendation layer receives redacted reporting facts and monitoring
+   results. It does not receive raw media objects, source names, precise
+   locations, hashes, or personal identifiers.
+
+5. dashboard/data.json is the stakeholder-facing read model consumed by the
+   browser dashboard. Sensitive operational fields used for anomaly detection,
+   such as metadata_json, are removed before this JSON is written.
+"""
 
 from __future__ import annotations
 
@@ -40,6 +69,13 @@ def run(command: list[str], input_text: str | None = None) -> str:
 
 
 def psql_json(sql: str) -> list[dict[str, str]]:
+    """Run a PostgreSQL reporting query and return rows as JSON.
+
+    JSON output is used instead of CSV because metadata fields can contain
+    commas, quotes, and nested structures. In production this same boundary
+    would normally be implemented by a read-only reporting role, scheduled ETL
+    job, or CDC process with explicit column allowlisting.
+    """
     clean_sql = sql.strip().rstrip(";")
     wrapped_sql = f"SELECT COALESCE(json_agg(query_rows), '[]'::json) FROM ({clean_sql}) query_rows;"
     command = ["sudo", "-u", "postgres", "psql", "-d", PG_DB, "-t", "-A", "-q", "-c", wrapped_sql]
@@ -60,6 +96,12 @@ def numeric(value: Any) -> str:
 
 
 def rebuild_olap(rows: list[dict[str, str]]) -> None:
+    """Rebuild the DuckDB OLAP fact table from the PostgreSQL extract.
+
+    DuckDB is intentionally rebuildable: if a dashboard or analytics query goes
+    wrong, the authoritative record remains in PostgreSQL OLTP and the reporting
+    layer can be regenerated.
+    """
     OLAP_DIR.mkdir(exist_ok=True)
     DASHBOARD_DIR.mkdir(exist_ok=True)
 
@@ -125,6 +167,13 @@ CREATE TABLE evidence_fact (
 
 
 def dashboard_snapshot(rows: list[dict[str, str]]) -> dict[str, Any]:
+    """Build the browser-facing stakeholder snapshot.
+
+    The snapshot is shaped around stakeholder views, not database tables:
+    leadership, investigations, legal, partners, data protection, AI review,
+    media, and monitoring. This mirrors a production pattern where operational
+    evidence records are transformed into role-specific read models.
+    """
     total = len(rows)
     ready = [
         row

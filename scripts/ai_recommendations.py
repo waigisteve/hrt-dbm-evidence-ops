@@ -3,6 +3,17 @@
 This module deliberately uses structured rules instead of sending sensitive
 evidence to an external model. In production, the `generate_recommendations`
 boundary is where an approved private LLM could be called with redacted facts.
+
+Production interpretation:
+
+- Input is a redacted reporting snapshot, not raw evidence.
+- Anomaly detection identifies operational, evidentiary, and governance risks.
+- Recommendation generation converts those risks into stakeholder-specific
+  actions for leadership, investigations, legal, partners, data protection,
+  monitoring, operations, and AI review.
+- A real GenAI integration should sit behind this same boundary and receive
+  only redacted anomaly facts after DPIA, vendor review, security review, and
+  human-in-the-loop approval.
 """
 
 from __future__ import annotations
@@ -20,6 +31,12 @@ def generate_ai_recommendations(
     rows: list[dict[str, str]],
     monitoring: list[dict[str, Any]],
 ) -> dict[str, Any]:
+    """Generate dashboard-ready anomaly findings and recommendations.
+
+    This function is the intended integration boundary for a future private LLM.
+    The current implementation is deterministic so the interview demo is
+    explainable, testable, and safe with sensitive-evidence assumptions.
+    """
     anomalies = detect_anomalies(rows, monitoring)
     recommendations = build_recommendations(anomalies)
     return {
@@ -40,6 +57,12 @@ def generate_ai_recommendations(
 
 
 def detect_anomalies(rows: list[dict[str, str]], monitoring: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Detect records and patterns that need human review.
+
+    The checks intentionally cover both technical health and evidentiary health:
+    a database can be online while the evidence estate is still weak because of
+    custody gaps, missing metadata, source skew, or verification backlog.
+    """
     anomalies: list[dict[str, Any]] = []
     total = max(1, len(rows))
     recent = rows[-30:] if len(rows) > 30 else rows
@@ -167,6 +190,7 @@ def detect_anomalies(rows: list[dict[str, str]], monitoring: list[dict[str, Any]
 
 
 def build_recommendations(anomalies: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Convert anomaly facts into practical stakeholder actions."""
     recommendations: list[dict[str, Any]] = []
     grouped: dict[str, list[dict[str, Any]]] = {}
     for item in anomalies:

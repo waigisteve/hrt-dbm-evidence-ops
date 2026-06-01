@@ -61,6 +61,20 @@ I would first stabilise and understand the existing systems, then improve eviden
 
 This role is not only database administration. It is secure investigative systems leadership: operating closed-source evidence platforms, strengthening relational analysis, preserving metadata and chain of custody, guiding responsible AI adoption, training non-technical users, supporting CSO partners, and leading data protection practice.
 
+## Production Data Flow in Code
+
+The demo uses synthetic data, but the code is shaped like a production evidence pipeline:
+
+- `scripts/simulate_continuous_intake.py` stands in for production connectors from video platforms, secure transfer tools, field collection apps, verification workflows, legal systems, IAM logs, and partner portals.
+- `sql/schema.sql` is the operational PostgreSQL OLTP model where those systems would write evidence metadata, custody events, verification steps, legal status, source records, access logs, and exports.
+- `scripts/refresh_olap.py` extracts a reporting-safe fact set from PostgreSQL, rebuilds DuckDB OLAP, creates stakeholder read models, strips fields that should not be exposed to the browser, and writes `dashboard/data.json`.
+- `scripts/ai_recommendations.py` receives redacted reporting facts and monitoring results, detects anomalies, and generates stakeholder-specific recommendations without sending raw media or sensitive identifiers to an external model.
+- `dashboard/app.js` presents the resulting read models through separate stakeholder tabs.
+
+Use this explanation in interview:
+
+> The simulator is only a stand-in for production intake. In a real deployment, controlled systems would populate the OLTP database through approved connectors or APIs. The reporting refresh then creates a separate OLAP/dashboard layer, and the AI recommendation layer works only on redacted anomaly facts.
+
 ## Schema Note
 
 The `persons` table is pseudonymous and now connects through `incident_persons` and `media_persons`. This allows investigative analysis of witnesses, victims, collectors, reviewers, or visible persons while preserving protection controls and avoiding direct personal identifiers in operational dashboards.

@@ -1,5 +1,20 @@
 #!/usr/bin/env python3
-"""Simulate one hour of continuous sensitive evidence intake into PostgreSQL OLTP."""
+"""Simulate continuous sensitive evidence intake into PostgreSQL OLTP.
+
+This script is demo-only. In production, equivalent records would normally be
+created by connectors, imports, or APIs from:
+
+- closed-source video/evidence platforms,
+- secure file transfer and intake workflows,
+- mobile/field collection tools,
+- investigator verification systems,
+- legal review or case-management systems,
+- partner submission portals.
+
+The simulator writes to the same OLTP tables those production integrations
+would populate, then runs the reporting refresh so the dashboard, monitoring,
+and AI recommendation layer update as if live evidence had arrived.
+"""
 
 from __future__ import annotations
 
