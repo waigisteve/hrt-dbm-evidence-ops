@@ -120,7 +120,41 @@ Use this phrasing:
 
 ## How AI Is Integrated
 
-The AI tab does not claim AI has verified evidence. It identifies candidate AI-assisted tasks and the controls required.
+The AI tab does not claim AI has verified evidence. It now has two layers:
+
+1. Anomaly detection over the reporting snapshot.
+2. A local GenAI-style recommendation layer that converts redacted anomaly facts into practical actions for each stakeholder.
+
+The local recommendation engine lives in:
+
+```text
+scripts/ai_recommendations.py
+```
+
+It detects issues such as:
+
+- Custody gaps.
+- Restricted but unverified records.
+- Empty metadata or missing captured time.
+- Unsafe or unscanned media catalog items.
+- Recent source skew.
+- Recent unverified surges.
+- Low legal-ready yield.
+- Monitoring alerts.
+
+It then produces recommendations for leadership, investigations, legal, CSO partners, data protection, monitoring, operations, and AI review.
+
+This is the safe demo architecture:
+
+```text
+PostgreSQL evidence records
+  -> DuckDB/reporting snapshot
+  -> redacted anomaly facts
+  -> local recommendation generator
+  -> AI Review dashboard
+```
+
+In a production design, this same boundary is where an approved private LLM could be called, but only with redacted facts and after DPIA, security review, vendor review, and human-in-the-loop controls.
 
 Safe examples:
 
@@ -129,6 +163,7 @@ Safe examples:
 - Entity extraction from redacted notes.
 - Similarity or duplicate detection.
 - Draft summaries for human review.
+- Recommendation drafting from redacted anomaly facts.
 
 Controls:
 

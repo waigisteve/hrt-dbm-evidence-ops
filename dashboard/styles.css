@@ -338,6 +338,79 @@ th { background: #f8fafc; color: #35465c; }
   color: var(--ink);
 }
 
+.notice strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.recommendation-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+  padding: 0 14px 14px;
+}
+
+.recommendation-card {
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--blue);
+  border-radius: 8px;
+  padding: 14px;
+  background: #ffffff;
+}
+
+.recommendation-card.high {
+  border-left-color: var(--risk);
+}
+
+.recommendation-card.medium {
+  border-left-color: var(--warn);
+}
+
+.recommendation-card.low {
+  border-left-color: var(--ok);
+}
+
+.recommendation-card strong,
+.recommendation-card small {
+  display: block;
+  color: var(--muted);
+}
+
+.recommendation-card h3 {
+  margin: 8px 0;
+  font-size: 16px;
+}
+
+.recommendation-card p {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.severity {
+  display: inline-block;
+  min-width: 58px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.severity.high {
+  color: #ffffff;
+  background: var(--risk);
+}
+
+.severity.medium {
+  color: #18212f;
+  background: #ffd899;
+}
+
+.severity.low {
+  color: #ffffff;
+  background: var(--ok);
+}
+
 .pipeline {
   display: grid;
   grid-template-columns: minmax(120px, 1fr) 24px minmax(120px, 1fr) 24px minmax(120px, 1fr) 24px minmax(120px, 1fr);

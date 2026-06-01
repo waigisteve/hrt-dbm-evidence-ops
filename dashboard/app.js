@@ -129,6 +129,7 @@ function withFilteredData(data, rows) {
     partners: rows.filter(row => Number(row.custody_events) === 0),
     data_protection: rows.filter(row => row.access_classification === "restricted"),
     ai: (data.ai || []).filter(row => ids.has(String(row.media_id))),
+    ai_recommendations: data.ai_recommendations || {},
     media: (data.media || []).filter(row => ids.has(String(row.media_id))),
     monitoring: data.monitoring || []
   };
@@ -333,7 +334,7 @@ function renderRole(data) {
   }
   if (activeRole === "leadership") renderLeadership(rows);
   else if (activeRole === "partners") renderPartners(rows);
-  else if (activeRole === "ai") renderAi(rows);
+  else if (activeRole === "ai") renderAi(rows, data.ai_recommendations || {});
   else if (activeRole === "media") renderMedia(rows);
   else if (activeRole === "monitoring") renderMonitoring(rows);
   else if (activeRole === "legal") renderLegal(rows);
@@ -385,17 +386,29 @@ function renderLeadership(rows) {
   });
 }
 
-function renderAi(rows) {
+function renderAi(rows, aiRecommendations) {
   const lowConfidence = rows.length;
   const transcription = rows.filter(row => row.suggested_use.toLowerCase().includes("transcription")).length;
   const extraction = rows.filter(row => row.suggested_use.toLowerCase().includes("extraction")).length;
+  const summary = aiRecommendations.summary || {};
+  const anomalies = aiRecommendations.anomalies || [];
+  const recommendations = aiRecommendations.recommendations || [];
   content.innerHTML = `
     <div class="executive-grid">
       ${execCard("HITL queue", lowConfidence, "AI candidates awaiting human review")}
       ${execCard("Transcription candidates", transcription, "Video/audio work queue")}
       ${execCard("Extraction candidates", extraction, "Document/entity work queue")}
-      ${execCard("Auto-approved outputs", 0, "Kept at zero by design")}
+      ${execCard("Detected anomalies", summary.anomaly_count || 0, "Structured facts passed to recommendation layer")}
     </div>
+    ${aiControlNotice(aiRecommendations)}
+    ${recommendationBoard(recommendations)}
+    ${table(["Severity", "Anomaly", "Owner", "Count", "Sample media"], anomalies.map(row => [
+      severity(row.severity),
+      human(row.type),
+      human(row.owner),
+      row.count,
+      (row.sample_media_ids || []).join(", ") || "portfolio-level"
+    ]))}
     ${table(["Media", "File", "Suggested AI use", "Required control"], rows.map(row => [
       row.media_id,
       row.file,
@@ -404,6 +417,25 @@ function renderAi(rows) {
     ]))}
     ${qaSplit(rows)}
   `;
+}
+
+function aiControlNotice(aiRecommendations) {
+  return `<div class="notice">
+    <strong>${human(aiRecommendations.mode || "local redacted recommendation engine")}</strong>
+    <p>${escapeHtml(aiRecommendations.model_boundary || "Recommendations use redacted facts only.")}</p>
+  </div>`;
+}
+
+function recommendationBoard(rows) {
+  if (!rows.length) return `<div class="empty">No AI recommendations for the current snapshot.</div>`;
+  return `<div class="recommendation-grid">${rows.map(row => `
+    <article class="recommendation-card ${row.severity}">
+      <strong>${escapeHtml(row.stakeholder)} | ${human(row.severity)}</strong>
+      <h3>${escapeHtml(row.title)}</h3>
+      <p>${escapeHtml(row.recommendation)}</p>
+      <small>${escapeHtml(row.expected_impact)}</small>
+    </article>
+  `).join("")}</div>`;
 }
 
 function renderLegal(rows) {
@@ -591,6 +623,10 @@ function table(headers, rows) {
 
 function status(value) {
   return `<span class="${value}">${human(value)}</span>`;
+}
+
+function severity(value) {
+  return `<span class="severity ${value}">${human(value)}</span>`;
 }
 
 function human(value) {

@@ -3,9 +3,9 @@
 
 from __future__ import annotations
 
-import csv
 import json
 import subprocess
+import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -13,6 +13,10 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from scripts.ai_recommendations import generate_ai_recommendations  # noqa: E402
+
 OLAP_DIR = ROOT / "olap"
 DASHBOARD_DIR = ROOT / "dashboard"
 OLAP_DB = OLAP_DIR / "videre_olap.duckdb"
@@ -35,25 +39,24 @@ def run(command: list[str], input_text: str | None = None) -> str:
     return result.stdout
 
 
-def psql_csv(sql: str) -> list[dict[str, str]]:
-    command = ["sudo", "-u", "postgres", "psql", "-d", PG_DB, "-A", "-F", ",", "-q", "-c", sql]
+def psql_json(sql: str) -> list[dict[str, str]]:
+    clean_sql = sql.strip().rstrip(";")
+    wrapped_sql = f"SELECT COALESCE(json_agg(query_rows), '[]'::json) FROM ({clean_sql}) query_rows;"
+    command = ["sudo", "-u", "postgres", "psql", "-d", PG_DB, "-t", "-A", "-q", "-c", wrapped_sql]
     output = run(command)
-    lines = [line for line in output.splitlines() if line and not line.startswith("(")]
-    if not lines:
-        return []
-    return list(csv.DictReader(lines))
+    return json.loads(output.strip() or "[]")
 
 
 def duckdb(sql: str) -> None:
     run(["duckdb", str(OLAP_DB)], sql)
 
 
-def q(value: str) -> str:
-    return "'" + value.replace("'", "''") + "'"
+def q(value: Any) -> str:
+    return "'" + str(value).replace("'", "''") + "'"
 
 
-def numeric(value: str) -> str:
-    return value if value not in {"", None} else "NULL"
+def numeric(value: Any) -> str:
+    return str(value) if value not in {"", None} else "NULL"
 
 
 def rebuild_olap(rows: list[dict[str, str]]) -> None:
@@ -80,6 +83,8 @@ def rebuild_olap(rows: list[dict[str, str]]) -> None:
                     q(row["received_at"]),
                     q(row["source_code"]),
                     q(row["risk_level"]),
+                    q(row["captured_at"]),
+                    q(row["metadata_json"]),
                 ]
             )
             + ")"
@@ -110,7 +115,9 @@ CREATE TABLE evidence_fact (
     retention_category VARCHAR,
     received_at VARCHAR,
     source_code VARCHAR,
-    source_risk_level VARCHAR
+    source_risk_level VARCHAR,
+    captured_at VARCHAR,
+    metadata_json VARCHAR
 );
 {insert_sql}
 """
@@ -168,6 +175,9 @@ def dashboard_snapshot(rows: list[dict[str, str]]) -> dict[str, Any]:
 
     charts = build_charts(rows, ready, restricted, custody_gaps, unverified)
     monitoring = build_monitoring(rows)
+    ai_recommendations = generate_ai_recommendations(rows, monitoring)
+    for row in rows:
+        row.pop("metadata_json", None)
 
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -187,6 +197,7 @@ def dashboard_snapshot(rows: list[dict[str, str]]) -> dict[str, Any]:
         "ai": ai_queue,
         "media": media_catalog,
         "monitoring": monitoring,
+        "ai_recommendations": ai_recommendations,
         "charts": charts,
     }
 
@@ -405,7 +416,9 @@ SELECT
     m.retention_category,
     m.received_at,
     COALESCE(s.source_code, 'unknown') AS source_code,
-    COALESCE(s.risk_level::text, 'unknown') AS risk_level
+    COALESCE(s.risk_level::text, 'unknown') AS risk_level,
+    COALESCE(m.captured_at::text, '') AS captured_at,
+    m.metadata_json::text AS metadata_json
 FROM media_files m
 JOIN incidents i ON i.incident_id = m.incident_id
 LEFT JOIN custody_events c ON c.media_id = m.media_id
@@ -422,11 +435,13 @@ GROUP BY
     m.legal_status,
     m.retention_category,
     m.received_at,
+    m.captured_at,
+    m.metadata_json,
     s.source_code,
     s.risk_level
 ORDER BY m.media_id;
 """
-    rows = psql_csv(sql)
+    rows = psql_json(sql)
     rebuild_olap(rows)
     snapshot = dashboard_snapshot(rows)
     snapshot["monitoring"].append(
