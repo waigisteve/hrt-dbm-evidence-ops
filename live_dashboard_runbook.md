@@ -144,6 +144,53 @@ It detects issues such as:
 
 It then produces recommendations for leadership, investigations, legal, CSO partners, data protection, monitoring, operations, and AI review.
 
+## Threshold Notifications: Slack and Gmail
+
+The AI recommendation layer can compose stakeholder notifications for anomalies that exceed configured thresholds. It is dry-run by default so the demo does not accidentally send sensitive alerts.
+
+Notification code:
+
+```text
+scripts/notifications.py
+```
+
+Default thresholds:
+
+```text
+VIDERE_NOTIFY_MIN_SEVERITY=high
+VIDERE_NOTIFY_MIN_COUNT=1
+VIDERE_NOTIFY_DRY_RUN=true
+```
+
+In dry-run mode, the AI Review dashboard shows which notifications would be sent, the stakeholder recipient, severity, anomaly type, and delivery status.
+
+To enable Slack delivery in a controlled test environment:
+
+```bash
+export VIDERE_NOTIFY_DRY_RUN=false
+export VIDERE_NOTIFY_MIN_SEVERITY=high
+export VIDERE_SLACK_WEBHOOK_URL="https://hooks.slack.com/services/REDACTED"
+python3 scripts/refresh_olap.py
+```
+
+To enable Gmail SMTP delivery, use a Gmail app password rather than your normal account password:
+
+```bash
+export VIDERE_NOTIFY_DRY_RUN=false
+export VIDERE_GMAIL_SENDER="sender@example.com"
+export VIDERE_GMAIL_APP_PASSWORD="app-password"
+export VIDERE_STAKEHOLDER_EMAILS="investigations:investigations@example.org,data_protection:dpo@example.org,legal:legal@example.org,leadership:leadership@example.org,monitoring:monitoring@example.org"
+python3 scripts/refresh_olap.py
+```
+
+Security rules:
+
+- Do not commit webhook URLs, app passwords, or real stakeholder emails.
+- Send redacted anomaly facts only.
+- Do not include raw media, precise locations, source names, file hashes, victim names, or personal identifiers.
+- Use high severity as the default threshold to avoid alert fatigue.
+- In production, route alerts through approved organisational channels with access control and audit logging.
+
 This is the safe demo architecture:
 
 ```text
@@ -151,6 +198,7 @@ PostgreSQL evidence records
   -> DuckDB/reporting snapshot
   -> redacted anomaly facts
   -> local recommendation generator
+  -> threshold notification composer
   -> AI Review dashboard
 ```
 

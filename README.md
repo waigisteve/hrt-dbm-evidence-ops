@@ -69,6 +69,7 @@ The demo uses synthetic data, but the code is shaped like a production evidence 
 - `sql/schema.sql` is the operational PostgreSQL OLTP model where those systems would write evidence metadata, custody events, verification steps, legal status, source records, access logs, and exports.
 - `scripts/refresh_olap.py` extracts a reporting-safe fact set from PostgreSQL, rebuilds DuckDB OLAP, creates stakeholder read models, strips fields that should not be exposed to the browser, and writes `dashboard/data.json`.
 - `scripts/ai_recommendations.py` receives redacted reporting facts and monitoring results, detects anomalies, and generates stakeholder-specific recommendations without sending raw media or sensitive identifiers to an external model.
+- `scripts/notifications.py` composes Slack or Gmail notifications for threshold-breaching anomalies. It is dry-run by default and uses environment variables for secrets.
 - `dashboard/app.js` presents the resulting read models through separate stakeholder tabs.
 
 Use this explanation in interview:

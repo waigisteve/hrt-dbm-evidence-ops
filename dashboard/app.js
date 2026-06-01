@@ -130,6 +130,7 @@ function withFilteredData(data, rows) {
     data_protection: rows.filter(row => row.access_classification === "restricted"),
     ai: (data.ai || []).filter(row => ids.has(String(row.media_id))),
     ai_recommendations: data.ai_recommendations || {},
+    notifications: data.notifications || {},
     media: (data.media || []).filter(row => ids.has(String(row.media_id))),
     monitoring: data.monitoring || []
   };
@@ -334,7 +335,7 @@ function renderRole(data) {
   }
   if (activeRole === "leadership") renderLeadership(rows);
   else if (activeRole === "partners") renderPartners(rows);
-  else if (activeRole === "ai") renderAi(rows, data.ai_recommendations || {});
+  else if (activeRole === "ai") renderAi(rows, data.ai_recommendations || {}, data.notifications || {});
   else if (activeRole === "media") renderMedia(rows);
   else if (activeRole === "monitoring") renderMonitoring(rows);
   else if (activeRole === "legal") renderLegal(rows);
@@ -386,7 +387,7 @@ function renderLeadership(rows) {
   });
 }
 
-function renderAi(rows, aiRecommendations) {
+function renderAi(rows, aiRecommendations, notifications) {
   const lowConfidence = rows.length;
   const transcription = rows.filter(row => row.suggested_use.toLowerCase().includes("transcription")).length;
   const extraction = rows.filter(row => row.suggested_use.toLowerCase().includes("extraction")).length;
@@ -402,6 +403,7 @@ function renderAi(rows, aiRecommendations) {
     </div>
     ${aiControlNotice(aiRecommendations)}
     ${recommendationBoard(recommendations)}
+    ${notificationBoard(notifications)}
     ${table(["Severity", "Anomaly", "Owner", "Count", "Sample media"], anomalies.map(row => [
       severity(row.severity),
       human(row.type),
@@ -436,6 +438,23 @@ function recommendationBoard(rows) {
       <small>${escapeHtml(row.expected_impact)}</small>
     </article>
   `).join("")}</div>`;
+}
+
+function notificationBoard(notifications) {
+  const events = notifications.events || [];
+  return `<div class="notice">
+    <strong>Threshold notifications</strong>
+    <p>${notifications.dry_run ? "Dry-run mode: notifications are composed but not sent." : "Live mode: configured Slack/Gmail delivery is enabled."}</p>
+    <p>Minimum severity: ${human(notifications.min_severity || "high")} | Minimum count: ${notifications.min_count || 1} | Events: ${notifications.event_count || 0}</p>
+  </div>
+  ${events.length ? table(["Channel", "Stakeholder", "Severity", "Anomaly", "Count", "Delivery"], events.map(row => [
+    human(row.channel),
+    escapeHtml(row.recipient),
+    severity(row.severity),
+    human(row.type),
+    row.count,
+    `${human(row.delivery_status)}: ${escapeHtml(row.delivery_detail || "")}`
+  ])) : ""}`;
 }
 
 function renderLegal(rows) {

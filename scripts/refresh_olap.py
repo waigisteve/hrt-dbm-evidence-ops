@@ -45,6 +45,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from scripts.ai_recommendations import generate_ai_recommendations  # noqa: E402
+from scripts.notifications import notify_threshold_anomalies  # noqa: E402
 
 OLAP_DIR = ROOT / "olap"
 DASHBOARD_DIR = ROOT / "dashboard"
@@ -225,6 +226,7 @@ def dashboard_snapshot(rows: list[dict[str, str]]) -> dict[str, Any]:
     charts = build_charts(rows, ready, restricted, custody_gaps, unverified)
     monitoring = build_monitoring(rows)
     ai_recommendations = generate_ai_recommendations(rows, monitoring)
+    notifications = notify_threshold_anomalies(ai_recommendations)
     for row in rows:
         row.pop("metadata_json", None)
 
@@ -247,6 +249,7 @@ def dashboard_snapshot(rows: list[dict[str, str]]) -> dict[str, Any]:
         "media": media_catalog,
         "monitoring": monitoring,
         "ai_recommendations": ai_recommendations,
+        "notifications": notifications,
         "charts": charts,
     }
 
