@@ -72,10 +72,13 @@ def notify_threshold_anomalies(ai_recommendations: dict[str, Any]) -> dict[str, 
 
     for event in events:
         if config.dry_run:
+            event["deliveries"] = dry_run_deliveries(config)
             event["delivery_status"] = "dry_run"
-            event["delivery_detail"] = "Notification composed but not sent. Set VIDERE_NOTIFY_DRY_RUN=false to send."
+            event["delivery_detail"] = "Notifications composed but not sent. Set VIDERE_NOTIFY_DRY_RUN=false to send."
             continue
-        event["delivery_status"], event["delivery_detail"] = deliver_event(event, config)
+        event["deliveries"] = deliver_event(event, config)
+        event["delivery_status"] = combined_status(event["deliveries"])
+        event["delivery_detail"] = "; ".join(delivery["detail"] for delivery in event["deliveries"])
 
     return {
         "enabled": not config.dry_run,
@@ -112,7 +115,7 @@ def build_event(anomaly: dict[str, Any], config: NotificationConfig) -> dict[str
         ]
     )
     return {
-        "channel": delivery_channel(config),
+        "channel": delivery_channels(config),
         "recipient": recipient,
         "owner": owner,
         "severity": anomaly["severity"],
@@ -123,22 +126,64 @@ def build_event(anomaly: dict[str, Any], config: NotificationConfig) -> dict[str
     }
 
 
-def delivery_channel(config: NotificationConfig) -> str:
-    if config.slack_webhook_url:
-        return "slack"
-    if config.smtp_sender and config.smtp_password:
-        return "email"
-    return "none_configured"
+def delivery_channels(config: NotificationConfig) -> str:
+    channels = configured_channels(config)
+    return "+".join(channels) if channels else "none_configured"
 
 
-def deliver_event(event: dict[str, Any], config: NotificationConfig) -> tuple[str, str]:
+def configured_channels(config: NotificationConfig) -> list[str]:
+    channels: list[str] = []
     if config.slack_webhook_url:
-        send_slack(event, config.slack_webhook_url)
-        return "sent", "Sent to Slack webhook."
+        channels.append("slack")
     if config.smtp_sender and config.smtp_password:
-        send_email(event, config)
-        return "sent", f"Sent to {event['recipient']} via SMTP."
-    return "not_sent", "No Slack webhook or SMTP credentials configured."
+        channels.append("email")
+    return channels
+
+
+def deliver_event(event: dict[str, Any], config: NotificationConfig) -> list[dict[str, str]]:
+    deliveries: list[dict[str, str]] = []
+    if config.slack_webhook_url:
+        try:
+            send_slack(event, config.slack_webhook_url)
+            deliveries.append({"channel": "slack", "status": "sent", "detail": "Sent to Slack webhook."})
+        except Exception as exc:
+            deliveries.append({"channel": "slack", "status": "failed", "detail": f"Slack send failed: {exc}"})
+    if config.smtp_sender and config.smtp_password:
+        try:
+            send_email(event, config)
+            deliveries.append({"channel": "email", "status": "sent", "detail": f"Sent to {event['recipient']} via SMTP."})
+        except Exception as exc:
+            deliveries.append({"channel": "email", "status": "failed", "detail": f"Email send failed: {exc}"})
+    if not deliveries:
+        deliveries.append({"channel": "none_configured", "status": "not_sent", "detail": "No Slack webhook or SMTP credentials configured."})
+    return deliveries
+
+
+def dry_run_deliveries(config: NotificationConfig) -> list[dict[str, str]]:
+    channels = configured_channels(config)
+    if not channels:
+        channels = ["none_configured"]
+    return [
+        {
+            "channel": channel,
+            "status": "dry_run",
+            "detail": "Notification composed but not sent. Set VIDERE_NOTIFY_DRY_RUN=false to send.",
+        }
+        for channel in channels
+    ]
+
+
+def combined_status(deliveries: list[dict[str, str]]) -> str:
+    statuses = {delivery["status"] for delivery in deliveries}
+    if statuses == {"sent"}:
+        return "sent"
+    if "sent" in statuses and "failed" in statuses:
+        return "partial"
+    if "failed" in statuses:
+        return "failed"
+    if "dry_run" in statuses:
+        return "dry_run"
+    return "not_sent"
 
 
 def send_slack(event: dict[str, Any], webhook_url: str) -> None:

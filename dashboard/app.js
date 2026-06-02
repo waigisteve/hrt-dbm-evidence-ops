@@ -453,8 +453,17 @@ function notificationBoard(notifications) {
     severity(row.severity),
     human(row.type),
     row.count,
-    `${human(row.delivery_status)}: ${escapeHtml(row.delivery_detail || "")}`
+    deliverySummary(row)
   ])) : ""}`;
+}
+
+function deliverySummary(row) {
+  if (Array.isArray(row.deliveries) && row.deliveries.length) {
+    return row.deliveries.map(delivery => (
+      `${human(delivery.channel)}: ${human(delivery.status)}`
+    )).join(" | ");
+  }
+  return `${human(row.delivery_status)}: ${escapeHtml(row.delivery_detail || "")}`;
 }
 
 function renderLegal(rows) {

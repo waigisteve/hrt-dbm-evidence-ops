@@ -185,6 +185,21 @@ export VIDERE_STAKEHOLDER_EMAILS="investigations:investigations@example.org,data
 python3 scripts/refresh_olap.py
 ```
 
+To send to both Slack and Gmail, keep both channel configurations set:
+
+```bash
+export VIDERE_NOTIFY_DRY_RUN=false
+export VIDERE_NOTIFY_MIN_SEVERITY=high
+export VIDERE_NOTIFY_MIN_COUNT=1
+export VIDERE_SLACK_WEBHOOK_URL="https://hooks.slack.com/services/REDACTED"
+export VIDERE_SMTP_HOST="smtp.gmail.com"
+export VIDERE_SMTP_PORT=465
+export VIDERE_SMTP_SENDER="sender@gmail.com"
+export VIDERE_SMTP_PASSWORD="gmail-app-password"
+export VIDERE_STAKEHOLDER_EMAILS="investigations:investigations@example.org,data_protection:dpo@example.org,legal:legal@example.org,leadership:leadership@example.org,monitoring:monitoring@example.org"
+python3 scripts/refresh_olap.py
+```
+
 The older Gmail-specific aliases also work:
 
 ```bash
