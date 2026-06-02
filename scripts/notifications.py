@@ -38,6 +38,7 @@ class NotificationConfig:
     smtp_port: int
     smtp_sender: str
     smtp_password: str
+    timeout_seconds: int
     stakeholder_emails: dict[str, str]
 
 
@@ -51,6 +52,7 @@ def load_notification_config() -> NotificationConfig:
         smtp_port=int(os.getenv("VIDERE_SMTP_PORT", "465")),
         smtp_sender=os.getenv("VIDERE_SMTP_SENDER", os.getenv("VIDERE_GMAIL_SENDER", "")),
         smtp_password=os.getenv("VIDERE_SMTP_PASSWORD", os.getenv("VIDERE_GMAIL_APP_PASSWORD", "")),
+        timeout_seconds=int(os.getenv("VIDERE_NOTIFY_TIMEOUT_SECONDS", "10")),
         stakeholder_emails=load_stakeholder_emails(),
     )
 
@@ -144,7 +146,7 @@ def deliver_event(event: dict[str, Any], config: NotificationConfig) -> list[dic
     deliveries: list[dict[str, str]] = []
     if config.slack_webhook_url:
         try:
-            send_slack(event, config.slack_webhook_url)
+            send_slack(event, config)
             deliveries.append({"channel": "slack", "status": "sent", "detail": "Sent to Slack webhook."})
         except Exception as exc:
             deliveries.append({"channel": "slack", "status": "failed", "detail": f"Slack send failed: {exc}"})
@@ -186,7 +188,7 @@ def combined_status(deliveries: list[dict[str, str]]) -> str:
     return "not_sent"
 
 
-def send_slack(event: dict[str, Any], webhook_url: str) -> None:
+def send_slack(event: dict[str, Any], config: NotificationConfig) -> None:
     payload = {
         "text": event["subject"],
         "blocks": [
@@ -195,12 +197,12 @@ def send_slack(event: dict[str, Any], webhook_url: str) -> None:
         ],
     }
     request = Request(
-        webhook_url,
+        config.slack_webhook_url,
         data=json.dumps(payload).encode("utf-8"),
         headers={"Content-Type": "application/json"},
         method="POST",
     )
-    with urlopen(request, timeout=10) as response:
+    with urlopen(request, timeout=config.timeout_seconds) as response:
         response.read()
 
 
@@ -211,7 +213,7 @@ def send_email(event: dict[str, Any], config: NotificationConfig) -> None:
     message["Subject"] = event["subject"]
     message.set_content(event["body"])
     context = ssl.create_default_context()
-    with smtplib.SMTP_SSL(config.smtp_host, config.smtp_port, context=context) as smtp:
+    with smtplib.SMTP_SSL(config.smtp_host, config.smtp_port, timeout=config.timeout_seconds, context=context) as smtp:
         smtp.login(config.smtp_sender, config.smtp_password)
         smtp.send_message(message)
 
