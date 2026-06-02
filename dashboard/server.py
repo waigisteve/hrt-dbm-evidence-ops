@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import os
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -28,8 +29,9 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 def main() -> None:
-    server = ThreadingHTTPServer(("127.0.0.1", 8765), Handler)
-    print("HRT dashboard running at http://127.0.0.1:8765")
+    port = int(os.getenv("HRT_DASHBOARD_PORT", "8765"))
+    server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+    print(f"HRT dashboard running at http://127.0.0.1:{port}")
     server.serve_forever()
 
 

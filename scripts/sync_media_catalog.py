@@ -133,6 +133,11 @@ def scan_asset(path: Path) -> dict[str, Any]:
 
 
 def main() -> None:
+    if not DASHBOARD_JSON.exists():
+        raise SystemExit(
+            "dashboard/data.json does not exist yet. Run `python3 scripts/refresh_olap.py` first, "
+            "then rerun `python3 scripts/sync_media_catalog.py`."
+        )
     data = json.loads(DASHBOARD_JSON.read_text(encoding="utf-8"))
     rows = data.get("investigations", [])
     OBJECTS.mkdir(parents=True, exist_ok=True)

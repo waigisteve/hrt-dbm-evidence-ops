@@ -32,7 +32,7 @@ sudo -i
 Then:
 
 ```bash
-cd "/mnt/c/Users/Hp/Desktop/dba/2026/HRT_DBM_Prep_Pack"
+cd "/mnt/c/Users/Hp/Desktop/dba/2026/HRT_DBM_Prep_Pack_clean"
 python3 scripts/refresh_olap.py
 python3 scripts/sync_media_catalog.py
 python3 scripts/refresh_olap.py
@@ -43,6 +43,18 @@ Open:
 
 ```text
 http://127.0.0.1:8765
+```
+
+If port `8765` is already in use, either use the server that is already running or start this copy on another port:
+
+```bash
+HRT_DASHBOARD_PORT=8766 python3 dashboard/server.py
+```
+
+Then open:
+
+```text
+http://127.0.0.1:8766
 ```
 
 The dashboard has demo stakeholder access tabs:
@@ -63,7 +75,7 @@ Terminal 2.
 Use another root-capable WSL terminal:
 
 ```bash
-cd "/mnt/c/Users/Hp/Desktop/dba/2026/HRT_DBM_Prep_Pack"
+cd "/mnt/c/Users/Hp/Desktop/dba/2026/HRT_DBM_Prep_Pack_clean"
 python3 scripts/simulate_continuous_intake.py --minutes 60 --interval 30
 ```
 
@@ -104,6 +116,7 @@ media_store/quarantine/
 Run:
 
 ```bash
+python3 scripts/refresh_olap.py
 python3 scripts/sync_media_catalog.py
 python3 scripts/refresh_olap.py
 ```
