@@ -72,6 +72,8 @@ The demo uses synthetic data, but the code is shaped like a production evidence 
 - `scripts/notifications.py` composes Slack or SMTP email notifications for threshold-breaching anomalies. It is dry-run by default and uses environment variables for secrets.
 - `dashboard/app.js` presents the resulting read models through separate stakeholder tabs.
 
+Notification setup is documented in `live_dashboard_runbook.md`, including Slack incoming webhooks, Gmail app passwords, combined Slack plus Gmail delivery, and troubleshooting WSL/VPN SMTP TLS timeouts.
+
 Use this explanation in interview:
 
 > The simulator is only a stand-in for production intake. In a real deployment, controlled systems would populate the OLTP database through approved connectors or APIs. The reporting refresh then creates a separate OLAP/dashboard layer, and the AI recommendation layer works only on redacted anomaly facts.

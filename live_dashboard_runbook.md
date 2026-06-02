@@ -164,7 +164,21 @@ VIDERE_NOTIFY_DRY_RUN=true
 
 In dry-run mode, the AI Review dashboard shows which notifications would be sent, the stakeholder recipient, severity, anomaly type, and delivery status.
 
-To enable Slack delivery in a controlled test environment:
+### Slack Setup
+
+Create a Slack app and incoming webhook:
+
+1. Open `https://api.slack.com/apps`.
+2. Create an app, for example `Videre Evidence Alerts`.
+3. Select the target workspace.
+4. Open `Incoming Webhooks`.
+5. Enable incoming webhooks.
+6. Add a webhook to the target channel.
+7. Copy the webhook URL.
+
+Do not paste the webhook into chat or commit it. If a webhook is exposed, revoke it in Slack and create a new one.
+
+To enable Slack delivery:
 
 ```bash
 export VIDERE_NOTIFY_DRY_RUN=false
@@ -173,7 +187,19 @@ export VIDERE_SLACK_WEBHOOK_URL="https://hooks.slack.com/services/REDACTED"
 python3 scripts/refresh_olap.py
 ```
 
-To enable Gmail SMTP delivery, use a Gmail app password rather than your normal account password:
+### Gmail Setup
+
+Use a Gmail app password, not your normal Gmail password:
+
+1. Open `https://myaccount.google.com/security`.
+2. Confirm 2-Step Verification is enabled.
+3. Open `https://myaccount.google.com/apppasswords`.
+4. Create an app password, for example `Videre evidence alerts`.
+5. Copy the 16-character app password once.
+
+Do not paste the app password into chat or commit it. If it is exposed, delete it in Google Account app passwords and create a new one.
+
+Gmail SMTP can use SSL on port 465:
 
 ```bash
 export VIDERE_NOTIFY_DRY_RUN=false
@@ -186,29 +212,42 @@ export VIDERE_STAKEHOLDER_EMAILS="investigations:investigations@example.org,data
 python3 scripts/refresh_olap.py
 ```
 
-To send to both Slack and Gmail, keep both channel configurations set:
+Or STARTTLS on port 587:
+
+```bash
+export VIDERE_NOTIFY_DRY_RUN=false
+export VIDERE_SMTP_HOST="smtp.gmail.com"
+export VIDERE_SMTP_PORT=587
+export VIDERE_SMTP_SECURITY="starttls"
+export VIDERE_SMTP_SENDER="sender@gmail.com"
+export VIDERE_SMTP_PASSWORD="gmail-app-password"
+export VIDERE_STAKEHOLDER_EMAILS="investigations:investigations@example.org,data_protection:dpo@example.org,legal:legal@example.org,leadership:leadership@example.org,monitoring:monitoring@example.org"
+python3 scripts/refresh_olap.py
+```
+
+### Slack and Gmail Together
+
+To send to both Slack and Gmail, keep both channel configurations set. Do not unset `VIDERE_SLACK_WEBHOOK_URL`.
 
 ```bash
 export VIDERE_NOTIFY_DRY_RUN=false
 export VIDERE_NOTIFY_MIN_SEVERITY=high
 export VIDERE_NOTIFY_MIN_COUNT=1
+export VIDERE_NOTIFY_TIMEOUT_SECONDS=30
 export VIDERE_SLACK_WEBHOOK_URL="https://hooks.slack.com/services/REDACTED"
 export VIDERE_SMTP_HOST="smtp.gmail.com"
-export VIDERE_SMTP_PORT=465
-export VIDERE_SMTP_SECURITY="ssl"
+export VIDERE_SMTP_PORT=587
+export VIDERE_SMTP_SECURITY="starttls"
 export VIDERE_SMTP_SENDER="sender@gmail.com"
 export VIDERE_SMTP_PASSWORD="gmail-app-password"
 export VIDERE_STAKEHOLDER_EMAILS="investigations:investigations@example.org,data_protection:dpo@example.org,legal:legal@example.org,leadership:leadership@example.org,monitoring:monitoring@example.org"
 python3 scripts/refresh_olap.py
 ```
 
-If Gmail SSL on port 465 times out, use STARTTLS on port 587:
+Expected AI Review delivery status:
 
-```bash
-export VIDERE_SMTP_HOST="smtp.gmail.com"
-export VIDERE_SMTP_PORT=587
-export VIDERE_SMTP_SECURITY="starttls"
-python3 scripts/refresh_olap.py
+```text
+slack: sent | email: sent
 ```
 
 The older Gmail-specific aliases also work:
@@ -230,9 +269,61 @@ export VIDERE_SMTP_PASSWORD="smtp-password-or-app-password"
 python3 scripts/refresh_olap.py
 ```
 
+### Gmail SMTP Troubleshooting
+
+If Slack sends but Gmail does not, open the AI Review dashboard and inspect **Threshold notifications**. A common failure is:
+
+```text
+Email send failed: _ssl.c:983: The handshake operation timed out
+```
+
+That means the code attempted email but Gmail TLS did not complete. Test from WSL:
+
+```bash
+python3 - <<'PY'
+import smtplib, ssl
+
+try:
+    with smtplib.SMTP("smtp.gmail.com", 587, timeout=30) as smtp:
+        print("connected")
+        smtp.ehlo()
+        print("ehlo ok")
+        smtp.starttls(context=ssl.create_default_context())
+        print("starttls ok")
+except Exception as e:
+    print("failed:", repr(e))
+PY
+```
+
+Also test SSL on port 465:
+
+```bash
+python3 - <<'PY'
+import smtplib, ssl
+
+try:
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=30, context=ssl.create_default_context()) as smtp:
+        print("ssl connected")
+        smtp.ehlo()
+        print("ehlo ok")
+except Exception as e:
+    print("failed:", repr(e))
+PY
+```
+
+From WSL, Windows PowerShell network checks can be run as:
+
+```bash
+powershell.exe -Command "Test-NetConnection smtp.gmail.com -Port 587"
+powershell.exe -Command "Test-NetConnection smtp.gmail.com -Port 465"
+```
+
+If Windows succeeds but WSL times out during TLS, check VPN, firewall, or proxy routing. In the local test environment, ProtonVPN allowed TCP reachability but initially caused TLS handshakes from WSL to time out. Disconnecting or changing the network path allowed both Gmail SSL and STARTTLS to complete.
+
 Security rules:
 
 - Do not commit webhook URLs, app passwords, or real stakeholder emails.
+- Rotate any Slack webhook or Gmail app password that is exposed in chat, terminal history, screenshots, or Git.
 - Send redacted anomaly facts only.
 - Do not include raw media, precise locations, source names, file hashes, victim names, or personal identifiers.
 - Use high severity as the default threshold to avoid alert fatigue.
