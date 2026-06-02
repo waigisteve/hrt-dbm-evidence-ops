@@ -1,5 +1,5 @@
--- Continuous intake simulation for the Videre preparation database.
--- Run inside videre_prep after schema.sql and sample_data.sql.
+-- Continuous intake simulation for the HRT preparation database.
+-- Run inside hrt_prep after schema.sql and sample_data.sql.
 
 INSERT INTO organisations (organisation_name, organisation_type, country_code, security_notes)
 VALUES ('Riverline Documentation Network', 'CSO partner', 'KE', 'Fictional low-connectivity partner using offline handover.');

@@ -4,11 +4,11 @@
 
 The database function is the control layer that turns sensitive incoming material into secure, searchable, verifiable, and usable information. The closed-source video system protects original multimedia. The relational database connects media to incidents, sources, locations, verification work, custody history, legal review, retention, and exports.
 
-The value to Videre is not only storage. It is confidence: leadership can know what exists, investigators can know what is usable, legal teams can know what is defensible, and partners can know how to submit material safely.
+The value to HRT is not only storage. It is confidence: leadership can know what exists, investigators can know what is usable, legal teams can know what is defensible, and partners can know how to submit material safely.
 
 ## How the Simulation Maps to the Job Description
 
-| Videre responsibility | Simulation artifact | Stakeholder meaning |
+| HRT responsibility | Simulation artifact | Stakeholder meaning |
 | --- | --- | --- |
 | Manage closed-source video systems and infrastructure | `media_files.external_video_system_id`, `storage_uri`, operations checklist | Original media remains controlled in the video platform; the relational layer indexes and governs it |
 | Keep systems secure, reliable, and legally/ethically aligned | sensitivity fields, access logs, legal review status, retention category | Sensitive records are not treated the same as ordinary files; access and use are governed |
@@ -29,7 +29,7 @@ The value to Videre is not only storage. It is confidence: leadership can know w
 
 ### Leadership
 
-> This system gives Videre a defensible view of its sensitive evidence estate: what we hold, where it came from, who accessed it, whether it is verified, whether it is legally usable, and what risks remain.
+> This system gives HRT a defensible view of its sensitive evidence estate: what we hold, where it came from, who accessed it, whether it is verified, whether it is legally usable, and what risks remain.
 
 Focus on risk visibility, legal defensibility, compliance, continuity, and vendor/system decisions.
 

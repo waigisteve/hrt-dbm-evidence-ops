@@ -1,8 +1,8 @@
-# Under the Hood: Videre Evidence Operations Simulation
+# Under the Hood: HRT Evidence Operations Simulation
 
 ## What This System Demonstrates
 
-This project simulates a secure investigative evidence environment for the Videre Database Manager role. It shows how sensitive videos, images, field notes, and partner submissions can move through controlled intake, preservation, verification, analysis, legal review, reporting, and AI-assisted triage.
+This project simulates a secure investigative evidence environment for the HRT Database Manager role. It shows how sensitive videos, images, field notes, and partner submissions can move through controlled intake, preservation, verification, analysis, legal review, reporting, and AI-assisted triage.
 
 The design deliberately separates operational evidence handling from reporting:
 
@@ -18,11 +18,11 @@ This separation is important because stakeholder reporting should not interfere 
 Field / CSO / investigator submissions
         |
         v
-PostgreSQL OLTP: videre_prep
+PostgreSQL OLTP: hrt_prep
         |
         | scripts/refresh_olap.py
         v
-DuckDB OLAP: olap/videre_olap.duckdb
+DuckDB OLAP: olap/hrt_olap.duckdb
         |
         | dashboard/data.json
         v
@@ -130,7 +130,7 @@ It:
 
 1. Queries PostgreSQL using `psql`.
 2. Pulls an evidence readiness dataset.
-3. Rebuilds `olap/videre_olap.duckdb`.
+3. Rebuilds `olap/hrt_olap.duckdb`.
 4. Writes `dashboard/data.json`.
 5. Feeds the browser dashboard.
 
@@ -162,7 +162,7 @@ Interview phrasing:
 
 > AI sits behind data protection and verification controls. It helps triage and reduce manual workload, but it does not convert unverified material into verified evidence.
 
-## How This Maps to Videre's Role
+## How This Maps to HRT's Role
 
 | Job area | Demonstrated by |
 | --- | --- |

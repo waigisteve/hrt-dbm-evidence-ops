@@ -1,6 +1,6 @@
-# Videre Database Manager Preparation Pack
+# HRT Database Manager Preparation Pack
 
-This pack is a practical work sample for the Videre Database Manager next step. It is built around a fictional investigation so it can demonstrate secure investigative data management without using real victims, real conflicts, or sensitive personal data.
+This pack is a practical work sample for the HRT Database Manager next step. It is built around a fictional investigation so it can demonstrate secure investigative data management without using real victims, real conflicts, or sensitive personal data.
 
 ## How to Use This Pack
 
@@ -17,11 +17,11 @@ This pack is a practical work sample for the Videre Database Manager next step. 
 Optional local run:
 
 ```bash
-createdb videre_prep
-psql -d videre_prep -f sql/schema.sql
-psql -d videre_prep -f sql/sample_data.sql
-psql -d videre_prep -f sql/continuous_intake_simulation.sql
-psql -d videre_prep -f sql/analysis_queries.sql
+createdb hrt_prep
+psql -d hrt_prep -f sql/schema.sql
+psql -d hrt_prep -f sql/sample_data.sql
+psql -d hrt_prep -f sql/continuous_intake_simulation.sql
+psql -d hrt_prep -f sql/analysis_queries.sql
 ```
 
 3. Rehearse with `interview_simulation.md`.
@@ -48,7 +48,7 @@ psql -d videre_prep -f sql/analysis_queries.sql
    - Explain the stakeholder-specific dashboard design, filters, masking, and one-click workflow drilldowns.
 
 10. Use `source_references.md`.
-   - Ground your answers in Videre's public model and recognised evidence-management standards.
+   - Ground your answers in the HRT role model and recognised evidence-management standards.
 
 11. Follow `practice_schedule.md`.
    - The schedule gives a 3-week route from research to final mock interview.
@@ -57,7 +57,7 @@ psql -d videre_prep -f sql/analysis_queries.sql
 
 I would first stabilise and understand the existing systems, then improve evidence integrity and user confidence, then scope any migration only where it clearly reduces risk or improves investigative value.
 
-## Core Message for Videre
+## Core Message for HRT
 
 This role is not only database administration. It is secure investigative systems leadership: operating closed-source evidence platforms, strengthening relational analysis, preserving metadata and chain of custody, guiding responsible AI adoption, training non-technical users, supporting CSO partners, and leading data protection practice.
 

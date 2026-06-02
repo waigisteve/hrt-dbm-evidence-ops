@@ -2,10 +2,10 @@
 
 Use these references to ground interview answers in the employer's public model and recognised human-rights documentation practice.
 
-## Videre and Recruiting Context
+## HRT and Recruiting Context
 
-- Videre, "How We Do It": https://www.videre.org.uk/how-we-do-it
-  - Key relevance: visual evidence, verification, security, storage and archiving, legal and advocacy use.
+- HRT target role materials and interview notes.
+  - Key relevance: secure investigative evidence systems, verification, security, storage and archiving, legal and advocacy use.
 - Red Sea Executive Search: https://www.redseasearch.com/
   - Key relevance: recruitment context and current/closed search listing.
 
@@ -26,6 +26,6 @@ Use these references to ground interview answers in the employer's public model 
 
 ## How to Use These in Interview Answers
 
-- Do not overclaim that Videre uses any specific public tool unless they confirm it.
+- Do not overclaim that HRT uses any specific public tool unless they confirm it.
 - Say "I would align the workflow with recognised practice such as..." when referencing external standards.
 - Bring answers back to practical controls: metadata preservation, hash validation, custody logs, access controls, secure transfer, retention, and human review.

@@ -32,7 +32,7 @@ sudo -i
 Then:
 
 ```bash
-cd "/mnt/c/Users/Hp/Desktop/dba/2026/Videre_DBM_Prep_Pack"
+cd "/mnt/c/Users/Hp/Desktop/dba/2026/HRT_DBM_Prep_Pack"
 python3 scripts/refresh_olap.py
 python3 scripts/sync_media_catalog.py
 python3 scripts/refresh_olap.py
@@ -63,7 +63,7 @@ Terminal 2.
 Use another root-capable WSL terminal:
 
 ```bash
-cd "/mnt/c/Users/Hp/Desktop/dba/2026/Videre_DBM_Prep_Pack"
+cd "/mnt/c/Users/Hp/Desktop/dba/2026/HRT_DBM_Prep_Pack"
 python3 scripts/simulate_continuous_intake.py --minutes 60 --interval 30
 ```
 
@@ -157,9 +157,9 @@ scripts/notifications.py
 Default thresholds:
 
 ```text
-VIDERE_NOTIFY_MIN_SEVERITY=high
-VIDERE_NOTIFY_MIN_COUNT=1
-VIDERE_NOTIFY_DRY_RUN=true
+HRT_NOTIFY_MIN_SEVERITY=high
+HRT_NOTIFY_MIN_COUNT=1
+HRT_NOTIFY_DRY_RUN=true
 ```
 
 In dry-run mode, the AI Review dashboard shows which notifications would be sent, the stakeholder recipient, severity, anomaly type, and delivery status.
@@ -169,7 +169,7 @@ In dry-run mode, the AI Review dashboard shows which notifications would be sent
 Create a Slack app and incoming webhook:
 
 1. Open `https://api.slack.com/apps`.
-2. Create an app, for example `Videre Evidence Alerts`.
+2. Create an app, for example `HRT Evidence Alerts`.
 3. Select the target workspace.
 4. Open `Incoming Webhooks`.
 5. Enable incoming webhooks.
@@ -181,9 +181,9 @@ Do not paste the webhook into chat or commit it. If a webhook is exposed, revoke
 To enable Slack delivery:
 
 ```bash
-export VIDERE_NOTIFY_DRY_RUN=false
-export VIDERE_NOTIFY_MIN_SEVERITY=high
-export VIDERE_SLACK_WEBHOOK_URL="https://hooks.slack.com/services/REDACTED"
+export HRT_NOTIFY_DRY_RUN=false
+export HRT_NOTIFY_MIN_SEVERITY=high
+export HRT_SLACK_WEBHOOK_URL="https://hooks.slack.com/services/REDACTED"
 python3 scripts/refresh_olap.py
 ```
 
@@ -194,7 +194,7 @@ Use a Gmail app password, not your normal Gmail password:
 1. Open `https://myaccount.google.com/security`.
 2. Confirm 2-Step Verification is enabled.
 3. Open `https://myaccount.google.com/apppasswords`.
-4. Create an app password, for example `Videre evidence alerts`.
+4. Create an app password, for example `HRT evidence alerts`.
 5. Copy the 16-character app password once.
 
 Do not paste the app password into chat or commit it. If it is exposed, delete it in Google Account app passwords and create a new one.
@@ -202,45 +202,45 @@ Do not paste the app password into chat or commit it. If it is exposed, delete i
 Gmail SMTP can use SSL on port 465:
 
 ```bash
-export VIDERE_NOTIFY_DRY_RUN=false
-export VIDERE_SMTP_HOST="smtp.gmail.com"
-export VIDERE_SMTP_PORT=465
-export VIDERE_SMTP_SECURITY="ssl"
-export VIDERE_SMTP_SENDER="sender@gmail.com"
-export VIDERE_SMTP_PASSWORD="gmail-app-password"
-export VIDERE_STAKEHOLDER_EMAILS="investigations:investigations@example.org,data_protection:dpo@example.org,legal:legal@example.org,leadership:leadership@example.org,monitoring:monitoring@example.org"
+export HRT_NOTIFY_DRY_RUN=false
+export HRT_SMTP_HOST="smtp.gmail.com"
+export HRT_SMTP_PORT=465
+export HRT_SMTP_SECURITY="ssl"
+export HRT_SMTP_SENDER="sender@gmail.com"
+export HRT_SMTP_PASSWORD="gmail-app-password"
+export HRT_STAKEHOLDER_EMAILS="investigations:investigations@example.org,data_protection:dpo@example.org,legal:legal@example.org,leadership:leadership@example.org,monitoring:monitoring@example.org"
 python3 scripts/refresh_olap.py
 ```
 
 Or STARTTLS on port 587:
 
 ```bash
-export VIDERE_NOTIFY_DRY_RUN=false
-export VIDERE_SMTP_HOST="smtp.gmail.com"
-export VIDERE_SMTP_PORT=587
-export VIDERE_SMTP_SECURITY="starttls"
-export VIDERE_SMTP_SENDER="sender@gmail.com"
-export VIDERE_SMTP_PASSWORD="gmail-app-password"
-export VIDERE_STAKEHOLDER_EMAILS="investigations:investigations@example.org,data_protection:dpo@example.org,legal:legal@example.org,leadership:leadership@example.org,monitoring:monitoring@example.org"
+export HRT_NOTIFY_DRY_RUN=false
+export HRT_SMTP_HOST="smtp.gmail.com"
+export HRT_SMTP_PORT=587
+export HRT_SMTP_SECURITY="starttls"
+export HRT_SMTP_SENDER="sender@gmail.com"
+export HRT_SMTP_PASSWORD="gmail-app-password"
+export HRT_STAKEHOLDER_EMAILS="investigations:investigations@example.org,data_protection:dpo@example.org,legal:legal@example.org,leadership:leadership@example.org,monitoring:monitoring@example.org"
 python3 scripts/refresh_olap.py
 ```
 
 ### Slack and Gmail Together
 
-To send to both Slack and Gmail, keep both channel configurations set. Do not unset `VIDERE_SLACK_WEBHOOK_URL`.
+To send to both Slack and Gmail, keep both channel configurations set. Do not unset `HRT_SLACK_WEBHOOK_URL`.
 
 ```bash
-export VIDERE_NOTIFY_DRY_RUN=false
-export VIDERE_NOTIFY_MIN_SEVERITY=high
-export VIDERE_NOTIFY_MIN_COUNT=1
-export VIDERE_NOTIFY_TIMEOUT_SECONDS=30
-export VIDERE_SLACK_WEBHOOK_URL="https://hooks.slack.com/services/REDACTED"
-export VIDERE_SMTP_HOST="smtp.gmail.com"
-export VIDERE_SMTP_PORT=587
-export VIDERE_SMTP_SECURITY="starttls"
-export VIDERE_SMTP_SENDER="sender@gmail.com"
-export VIDERE_SMTP_PASSWORD="gmail-app-password"
-export VIDERE_STAKEHOLDER_EMAILS="investigations:investigations@example.org,data_protection:dpo@example.org,legal:legal@example.org,leadership:leadership@example.org,monitoring:monitoring@example.org"
+export HRT_NOTIFY_DRY_RUN=false
+export HRT_NOTIFY_MIN_SEVERITY=high
+export HRT_NOTIFY_MIN_COUNT=1
+export HRT_NOTIFY_TIMEOUT_SECONDS=30
+export HRT_SLACK_WEBHOOK_URL="https://hooks.slack.com/services/REDACTED"
+export HRT_SMTP_HOST="smtp.gmail.com"
+export HRT_SMTP_PORT=587
+export HRT_SMTP_SECURITY="starttls"
+export HRT_SMTP_SENDER="sender@gmail.com"
+export HRT_SMTP_PASSWORD="gmail-app-password"
+export HRT_STAKEHOLDER_EMAILS="investigations:investigations@example.org,data_protection:dpo@example.org,legal:legal@example.org,leadership:leadership@example.org,monitoring:monitoring@example.org"
 python3 scripts/refresh_olap.py
 ```
 
@@ -253,19 +253,19 @@ slack: sent | email: sent
 The older Gmail-specific aliases also work:
 
 ```bash
-export VIDERE_GMAIL_SENDER="sender@gmail.com"
-export VIDERE_GMAIL_APP_PASSWORD="gmail-app-password"
+export HRT_GMAIL_SENDER="sender@gmail.com"
+export HRT_GMAIL_APP_PASSWORD="gmail-app-password"
 ```
 
 For another provider, keep the same pattern and change host, port, sender, and password:
 
 ```bash
-export VIDERE_NOTIFY_DRY_RUN=false
-export VIDERE_SMTP_HOST="smtp.example.org"
-export VIDERE_SMTP_PORT=465
-export VIDERE_SMTP_SECURITY="ssl"
-export VIDERE_SMTP_SENDER="alerts@example.org"
-export VIDERE_SMTP_PASSWORD="smtp-password-or-app-password"
+export HRT_NOTIFY_DRY_RUN=false
+export HRT_SMTP_HOST="smtp.example.org"
+export HRT_SMTP_PORT=465
+export HRT_SMTP_SECURITY="ssl"
+export HRT_SMTP_SENDER="alerts@example.org"
+export HRT_SMTP_PASSWORD="smtp-password-or-app-password"
 python3 scripts/refresh_olap.py
 ```
 

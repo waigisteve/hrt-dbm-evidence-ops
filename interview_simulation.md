@@ -1,4 +1,4 @@
-# Videre Database Manager Interview Simulation
+# HRT Database Manager Interview Simulation
 
 ## 10-Minute Presentation
 
@@ -44,7 +44,7 @@ I understand this role as secure investigative systems leadership, not only data
 
 ### Relational Database Development
 
-**Question:** What would the relational database add if Videre already has a video platform?
+**Question:** What would the relational database add if HRT already has a video platform?
 
 **Answer frame:** The video platform controls the original media. The relational layer helps connect incidents, sources, locations, actors, verification steps, legal review, custody events, and exports. It supports pattern analysis and evidentiary readiness without weakening control over original files.
 
@@ -92,7 +92,7 @@ I understand this role as secure investigative systems leadership, not only data
 
 **Answer frame:** A new evidence platform, migration of large sensitive datasets, AI processing, new external sharing, new partner collection workflow, biometric or highly identifiable data processing, or systematic monitoring of vulnerable groups.
 
-## Strong Questions to Ask Videre
+## Strong Questions to Ask HRT
 
 - What are the most painful current limitations in the existing information systems?
 - Where do investigative, legal, and programme teams currently lose time or confidence in the data?

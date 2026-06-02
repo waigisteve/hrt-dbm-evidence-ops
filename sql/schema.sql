@@ -1,4 +1,4 @@
--- PostgreSQL schema for a fictional Videre-style investigative evidence system.
+-- PostgreSQL schema for a fictional HRT-style investigative evidence system.
 -- The closed-source video system remains the system of record for original media.
 -- This relational layer supports cross-referencing, verification, governance, and reporting.
 

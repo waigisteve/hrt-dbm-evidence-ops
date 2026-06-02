@@ -5,8 +5,8 @@
 Primary schema files:
 
 - `sql/schema.sql`: PostgreSQL DDL.
-- `diagrams/videre_schema.dbml`: dbdiagram.io DBML.
-- `diagrams/videre_schema_erd.mmd`: Mermaid ERD.
+- `diagrams/hrt_schema.dbml`: dbdiagram.io DBML.
+- `diagrams/hrt_schema_erd.mmd`: Mermaid ERD.
 
 ## Table Groups
 

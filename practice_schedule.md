@@ -5,7 +5,7 @@
 | Day | Work |
 | --- | --- |
 | 1 | Read the job description and map each responsibility to one work-sample artifact |
-| 2 | Review Videre public materials and summarize the operating model: film, verify, expose |
+| 2 | Review HRT public materials and summarize the operating model: film, verify, expose |
 | 3 | Review Berkeley Protocol, WITNESS Video as Evidence, HURIDOCS/Uwazi, and Mnemonic methods |
 | 4 | Define the fictional Project Northlight dataset and user roles |
 | 5 | Draft the evidence lifecycle and chain-of-custody workflow |
@@ -32,7 +32,7 @@
 | 16 | Strengthen examples from your own DBA, cloud, migration, security, and user-support experience |
 | 17 | Practice explaining technical controls to a non-technical interviewer |
 | 18 | Practice hard questions on GDPR, AI, and conflict between programme urgency and data minimisation |
-| 19 | Prepare three questions to ask Videre |
+| 19 | Prepare three questions to ask HRT |
 | 20 | Full mock interview: 10-minute presentation plus 45-minute panel |
 | 21 | Final refinement: concise opening, strongest examples, and closing statement |
 
@@ -40,4 +40,4 @@
 
 Answer this in two minutes:
 
-How would I help Videre make sensitive visual evidence more secure, searchable, verifiable, and useful for accountability without making the system too difficult for investigators and partners to use?
+How would I help HRT make sensitive visual evidence more secure, searchable, verifiable, and useful for accountability without making the system too difficult for investigators and partners to use?

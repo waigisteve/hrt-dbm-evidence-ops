@@ -8,7 +8,7 @@ In this setup:
 
 - **pgAdmin** is installed on Windows.
 - **PostgreSQL** is running inside Ubuntu on WSL.
-- The target database is `videre_prep`.
+- The target database is `hrt_prep`.
 
 ---
 
@@ -20,7 +20,7 @@ In this setup:
 | WSL PostgreSQL version | PostgreSQL 16 |
 | WSL distribution | Ubuntu 24.04 LTS |
 | WSL username | `waigisteve` |
-| Target database | `videre_prep` |
+| Target database | `hrt_prep` |
 | PostgreSQL user | `postgres` |
 | WSL PostgreSQL IP observed | `172.25.250.6` |
 | PostgreSQL port | `5432` |
@@ -36,10 +36,10 @@ This happened because there were two separate PostgreSQL environments:
 
 ```text
 Windows PostgreSQL 17  -> visible from pgAdmin through Windows localhost
-WSL PostgreSQL         -> contains the videre_prep database
+WSL PostgreSQL         -> contains the hrt_prep database
 ```
 
-The `videre_prep` database existed only inside WSL.
+The `hrt_prep` database existed only inside WSL.
 
 ---
 
@@ -65,7 +65,7 @@ Host: ::1
 Port: 5432
 ```
 
-the connection worked, but it connected to the **Windows PostgreSQL instance**, where `videre_prep` did not exist.
+the connection worked, but it connected to the **Windows PostgreSQL instance**, where `hrt_prep` did not exist.
 
 When trying to connect directly to the WSL IP:
 
@@ -101,7 +101,7 @@ The correct PostgreSQL instance was inside WSL, but pgAdmin could not reach it d
 Inside WSL, the database was confirmed using:
 
 ```bash
-psql -h 172.25.250.6 -p 5432 -U postgres -d videre_prep
+psql -h 172.25.250.6 -p 5432 -U postgres -d hrt_prep
 ```
 
 Then inside `psql`:
@@ -119,10 +119,10 @@ Expected output:
 ```text
 server_ip     | server_port | database_name | connected_user
 --------------+-------------+---------------+----------------
-172.25.250.6  | 5432        | videre_prep   | postgres
+172.25.250.6  | 5432        | hrt_prep   | postgres
 ```
 
-This confirmed that PostgreSQL inside WSL was healthy and that `videre_prep` existed there.
+This confirmed that PostgreSQL inside WSL was healthy and that `hrt_prep` existed there.
 
 ---
 
@@ -168,7 +168,7 @@ This confirmed that PostgreSQL inside WSL was listening on port `5432`.
 From Windows PowerShell:
 
 ```powershell
-& "C:\Program Files\PostgreSQL\17\bin\psql.exe" -h 172.25.250.6 -p 5432 -U postgres -d videre_prep
+& "C:\Program Files\PostgreSQL\17\bin\psql.exe" -h 172.25.250.6 -p 5432 -U postgres -d hrt_prep
 ```
 
 Result:
@@ -220,7 +220,7 @@ TcpTestSucceeded : True
 However, the PostgreSQL session still failed:
 
 ```powershell
-& "C:\Program Files\PostgreSQL\17\bin\psql.exe" -h 127.0.0.1 -p 5433 -U postgres -d videre_prep
+& "C:\Program Files\PostgreSQL\17\bin\psql.exe" -h 127.0.0.1 -p 5433 -U postgres -d hrt_prep
 ```
 
 Result:
@@ -245,7 +245,7 @@ The final connection path is:
 pgAdmin on Windows
     -> SSH to WSL through 127.0.0.1:22
     -> PostgreSQL inside WSL through 127.0.0.1:5432
-    -> Database: videre_prep
+    -> Database: hrt_prep
 ```
 
 ---
@@ -324,7 +324,7 @@ Create a new server in pgAdmin.
 ### General Tab
 
 ```text
-Name: Videre Prep - WSL SSH Tunnel
+Name: HRT Prep - WSL SSH Tunnel
 ```
 
 ### Connection Tab
@@ -334,7 +334,7 @@ Use these settings:
 ```text
 Host name/address: 127.0.0.1
 Port: 5432
-Maintenance database: videre_prep
+Maintenance database: hrt_prep
 Username: postgres
 Password: <PostgreSQL postgres password>
 Role: blank
@@ -384,12 +384,12 @@ Do not confuse the two.
 ## Final Working pgAdmin Setup
 
 ```text
-Server name: Videre Prep - WSL SSH Tunnel
+Server name: HRT Prep - WSL SSH Tunnel
 
 Connection:
 Host: 127.0.0.1
 Port: 5432
-Database: videre_prep
+Database: hrt_prep
 User: postgres
 
 SSH Tunnel:
@@ -407,7 +407,7 @@ To avoid confusion, rename pgAdmin server registrations clearly:
 
 ```text
 PostgreSQL 17 - Windows
-Videre Prep - WSL SSH Tunnel
+HRT Prep - WSL SSH Tunnel
 ```
 
 This makes it clear which server points to Windows PostgreSQL and which one points to the WSL PostgreSQL database.
@@ -436,7 +436,7 @@ When using SSH tunneling, PostgreSQL may show `127.0.0.1` as the server or clien
 SELECT COUNT(*) FROM public.incidents;
 ```
 
-This confirms that the `videre_prep` database is accessible and the expected tables are available.
+This confirms that the `hrt_prep` database is accessible and the expected tables are available.
 
 ---
 
@@ -463,11 +463,11 @@ pgAdmin on Windows successfully connected to the PostgreSQL database running ins
 The working database is:
 
 ```text
-videre_prep
+hrt_prep
 ```
 
 The working approach is:
 
 ```text
-pgAdmin -> SSH Tunnel -> WSL -> PostgreSQL -> videre_prep
+pgAdmin -> SSH Tunnel -> WSL -> PostgreSQL -> hrt_prep
 ```

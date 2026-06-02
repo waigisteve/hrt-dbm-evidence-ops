@@ -45,16 +45,16 @@ class NotificationConfig:
 
 def load_notification_config() -> NotificationConfig:
     return NotificationConfig(
-        dry_run=os.getenv("VIDERE_NOTIFY_DRY_RUN", "true").lower() != "false",
-        min_severity=os.getenv("VIDERE_NOTIFY_MIN_SEVERITY", "high").lower(),
-        min_count=int(os.getenv("VIDERE_NOTIFY_MIN_COUNT", "1")),
-        slack_webhook_url=os.getenv("VIDERE_SLACK_WEBHOOK_URL", ""),
-        smtp_host=os.getenv("VIDERE_SMTP_HOST", "smtp.gmail.com"),
-        smtp_port=int(os.getenv("VIDERE_SMTP_PORT", "465")),
-        smtp_security=os.getenv("VIDERE_SMTP_SECURITY", "ssl").lower(),
-        smtp_sender=os.getenv("VIDERE_SMTP_SENDER", os.getenv("VIDERE_GMAIL_SENDER", "")),
-        smtp_password=os.getenv("VIDERE_SMTP_PASSWORD", os.getenv("VIDERE_GMAIL_APP_PASSWORD", "")),
-        timeout_seconds=int(os.getenv("VIDERE_NOTIFY_TIMEOUT_SECONDS", "10")),
+        dry_run=os.getenv("HRT_NOTIFY_DRY_RUN", "true").lower() != "false",
+        min_severity=os.getenv("HRT_NOTIFY_MIN_SEVERITY", "high").lower(),
+        min_count=int(os.getenv("HRT_NOTIFY_MIN_COUNT", "1")),
+        slack_webhook_url=os.getenv("HRT_SLACK_WEBHOOK_URL", ""),
+        smtp_host=os.getenv("HRT_SMTP_HOST", "smtp.gmail.com"),
+        smtp_port=int(os.getenv("HRT_SMTP_PORT", "465")),
+        smtp_security=os.getenv("HRT_SMTP_SECURITY", "ssl").lower(),
+        smtp_sender=os.getenv("HRT_SMTP_SENDER", os.getenv("HRT_GMAIL_SENDER", "")),
+        smtp_password=os.getenv("HRT_SMTP_PASSWORD", os.getenv("HRT_GMAIL_APP_PASSWORD", "")),
+        timeout_seconds=int(os.getenv("HRT_NOTIFY_TIMEOUT_SECONDS", "10")),
         stakeholder_emails=load_stakeholder_emails(),
     )
 
@@ -78,7 +78,7 @@ def notify_threshold_anomalies(ai_recommendations: dict[str, Any]) -> dict[str, 
         if config.dry_run:
             event["deliveries"] = dry_run_deliveries(config)
             event["delivery_status"] = "dry_run"
-            event["delivery_detail"] = "Notifications composed but not sent. Set VIDERE_NOTIFY_DRY_RUN=false to send."
+            event["delivery_detail"] = "Notifications composed but not sent. Set HRT_NOTIFY_DRY_RUN=false to send."
             continue
         event["deliveries"] = deliver_event(event, config)
         event["delivery_status"] = combined_status(event["deliveries"])
@@ -104,7 +104,7 @@ def should_notify(anomaly: dict[str, Any], config: NotificationConfig) -> bool:
 def build_event(anomaly: dict[str, Any], config: NotificationConfig) -> dict[str, Any]:
     owner = str(anomaly.get("owner", "monitoring")).lower()
     recipient = config.stakeholder_emails.get(owner, DEFAULT_STAKEHOLDER_EMAILS.get(owner, "monitoring@example.org"))
-    subject = f"[Videre demo] {str(anomaly['severity']).upper()} anomaly: {anomaly['type']}"
+    subject = f"[HRT demo] {str(anomaly['severity']).upper()} anomaly: {anomaly['type']}"
     body = "\n".join(
         [
             subject,
@@ -171,7 +171,7 @@ def dry_run_deliveries(config: NotificationConfig) -> list[dict[str, str]]:
         {
             "channel": channel,
             "status": "dry_run",
-            "detail": "Notification composed but not sent. Set VIDERE_NOTIFY_DRY_RUN=false to send.",
+            "detail": "Notification composed but not sent. Set HRT_NOTIFY_DRY_RUN=false to send.",
         }
         for channel in channels
     ]
@@ -242,7 +242,7 @@ def slack_body(event: dict[str, Any]) -> str:
 
 def load_stakeholder_emails() -> dict[str, str]:
     configured = dict(DEFAULT_STAKEHOLDER_EMAILS)
-    raw = os.getenv("VIDERE_STAKEHOLDER_EMAILS", "")
+    raw = os.getenv("HRT_STAKEHOLDER_EMAILS", "")
     if not raw:
         return configured
     for pair in raw.split(","):

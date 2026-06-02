@@ -2,7 +2,7 @@
 
 ## Business Case
 
-Videre-style investigative teams need to receive high-risk multimedia, preserve its integrity, make it searchable, verify it responsibly, and package it safely for internal, legal, advocacy, partner, and AI-assisted workflows.
+HRT-style investigative teams need to receive high-risk multimedia, preserve its integrity, make it searchable, verify it responsibly, and package it safely for internal, legal, advocacy, partner, and AI-assisted workflows.
 
 The system demonstrates a Database Manager approach that separates operational evidence handling from analytics:
 
@@ -135,20 +135,20 @@ erDiagram
 Open diagrams.net, choose **File -> Import From -> Device**, then select:
 
 ```text
-diagrams/videre_architecture.drawio
+diagrams/hrt_architecture.drawio
 ```
 
 For Mermaid-capable tools, use:
 
 ```text
-diagrams/videre_schema_erd.mmd
-diagrams/videre_oltp_olap_architecture.mmd
+diagrams/hrt_schema_erd.mmd
+diagrams/hrt_oltp_olap_architecture.mmd
 ```
 
 For dbdiagram.io, use DBML:
 
 ```text
-diagrams/videre_schema.dbml
+diagrams/hrt_schema.dbml
 ```
 
 Published dbdiagram link:

@@ -49,10 +49,10 @@ from scripts.notifications import notify_threshold_anomalies  # noqa: E402
 
 OLAP_DIR = ROOT / "olap"
 DASHBOARD_DIR = ROOT / "dashboard"
-OLAP_DB = OLAP_DIR / "videre_olap.duckdb"
+OLAP_DB = OLAP_DIR / "hrt_olap.duckdb"
 SNAPSHOT_JSON = DASHBOARD_DIR / "data.json"
 MEDIA_CATALOG = ROOT / "media_store" / "catalog.jsonl"
-PG_DB = "videre_prep"
+PG_DB = "hrt_prep"
 
 
 def run(command: list[str], input_text: str | None = None) -> str:

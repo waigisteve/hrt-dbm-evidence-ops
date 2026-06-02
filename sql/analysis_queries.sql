@@ -1,4 +1,4 @@
--- Practical analytical SQL for the Videre-style preparation work sample.
+-- Practical analytical SQL for the HRT-style preparation work sample.
 
 -- 1. Media records missing required evidence-management fields.
 SELECT

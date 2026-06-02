@@ -27,7 +27,7 @@ from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
 
-PG_DB = "videre_prep"
+PG_DB = "hrt_prep"
 MEDIA_TYPES = ["video", "photo", "document"]
 INCIDENT_TYPES = ["political violence", "checkpoint abuse", "night operation", "arbitrary detention"]
 LOCALITIES = ["Kijani Market", "Mtoni Junction", "Riverline Bus Stage", "East Gate", "Old Depot"]

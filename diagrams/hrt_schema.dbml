@@ -1,5 +1,5 @@
 // DBML schema for dbdiagram.io
-// Videre-style investigative evidence system
+// HRT-style investigative evidence system
 
 Enum sensitivity_level {
   low

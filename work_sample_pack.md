@@ -1,8 +1,8 @@
-# Videre-Style Evidence Systems Work Sample
+# HRT-Style Evidence Systems Work Sample
 
 ## Scenario
 
-This work sample uses a fictional investigation called Project Northlight. Field partners submit short videos, photos, witness notes, and contextual observations about alleged political violence. Videre-style programme, investigation, verification, legal, and advocacy teams need a secure system that preserves raw evidence, supports relational analysis, and produces defensible outputs.
+This work sample uses a fictional investigation called Project Northlight. Field partners submit short videos, photos, witness notes, and contextual observations about alleged political violence. HRT-style programme, investigation, verification, legal, and advocacy teams need a secure system that preserves raw evidence, supports relational analysis, and produces defensible outputs.
 
 The assumed environment includes a closed-source video management system, secure file storage, a relational PostgreSQL analysis layer, controlled exports for legal and advocacy use, and staff/partner users in different countries with varied connectivity and IT confidence.
 

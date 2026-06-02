@@ -29,7 +29,7 @@ class Handler(SimpleHTTPRequestHandler):
 
 def main() -> None:
     server = ThreadingHTTPServer(("127.0.0.1", 8765), Handler)
-    print("Videre dashboard running at http://127.0.0.1:8765")
+    print("HRT dashboard running at http://127.0.0.1:8765")
     server.serve_forever()
 
 
