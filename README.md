@@ -2,6 +2,12 @@
 
 This pack is a practical work sample for the HRT Database Manager next step. It is built around a fictional investigation so it can demonstrate secure investigative data management without using real victims, real conflicts, or sensitive personal data.
 
+Active local dashboard URL:
+
+```text
+http://127.0.0.1:8766
+```
+
 ## How to Use This Pack
 
 1. Start with `work_sample_pack.md`.

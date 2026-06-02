@@ -36,25 +36,25 @@ cd "/mnt/c/Users/Hp/Desktop/dba/2026/HRT_DBM_Prep_Pack_clean"
 python3 scripts/refresh_olap.py
 python3 scripts/sync_media_catalog.py
 python3 scripts/refresh_olap.py
-python3 dashboard/server.py
+HRT_DASHBOARD_PORT=8766 python3 dashboard/server.py
 ```
 
-Open:
+Active local dashboard URL:
 
 ```text
-http://127.0.0.1:8765
+http://127.0.0.1:8766
 ```
 
-If port `8765` is already in use, either use the server that is already running or start this copy on another port:
+Port `8766` is the active URL for the current HRT clean clone because port `8765` was already occupied by another local dashboard server. If `8766` is busy, choose another free port:
 
 ```bash
-HRT_DASHBOARD_PORT=8766 python3 dashboard/server.py
+HRT_DASHBOARD_PORT=8767 python3 dashboard/server.py
 ```
 
 Then open:
 
 ```text
-http://127.0.0.1:8766
+http://127.0.0.1:8767
 ```
 
 The dashboard has demo stakeholder access tabs:
