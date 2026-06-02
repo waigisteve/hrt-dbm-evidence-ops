@@ -34,8 +34,10 @@ class NotificationConfig:
     min_severity: str
     min_count: int
     slack_webhook_url: str
-    gmail_sender: str
-    gmail_app_password: str
+    smtp_host: str
+    smtp_port: int
+    smtp_sender: str
+    smtp_password: str
     stakeholder_emails: dict[str, str]
 
 
@@ -45,8 +47,10 @@ def load_notification_config() -> NotificationConfig:
         min_severity=os.getenv("VIDERE_NOTIFY_MIN_SEVERITY", "high").lower(),
         min_count=int(os.getenv("VIDERE_NOTIFY_MIN_COUNT", "1")),
         slack_webhook_url=os.getenv("VIDERE_SLACK_WEBHOOK_URL", ""),
-        gmail_sender=os.getenv("VIDERE_GMAIL_SENDER", ""),
-        gmail_app_password=os.getenv("VIDERE_GMAIL_APP_PASSWORD", ""),
+        smtp_host=os.getenv("VIDERE_SMTP_HOST", "smtp.gmail.com"),
+        smtp_port=int(os.getenv("VIDERE_SMTP_PORT", "465")),
+        smtp_sender=os.getenv("VIDERE_SMTP_SENDER", os.getenv("VIDERE_GMAIL_SENDER", "")),
+        smtp_password=os.getenv("VIDERE_SMTP_PASSWORD", os.getenv("VIDERE_GMAIL_APP_PASSWORD", "")),
         stakeholder_emails=load_stakeholder_emails(),
     )
 
@@ -122,8 +126,8 @@ def build_event(anomaly: dict[str, Any], config: NotificationConfig) -> dict[str
 def delivery_channel(config: NotificationConfig) -> str:
     if config.slack_webhook_url:
         return "slack"
-    if config.gmail_sender and config.gmail_app_password:
-        return "gmail"
+    if config.smtp_sender and config.smtp_password:
+        return "email"
     return "none_configured"
 
 
@@ -131,10 +135,10 @@ def deliver_event(event: dict[str, Any], config: NotificationConfig) -> tuple[st
     if config.slack_webhook_url:
         send_slack(event, config.slack_webhook_url)
         return "sent", "Sent to Slack webhook."
-    if config.gmail_sender and config.gmail_app_password:
-        send_gmail(event, config)
-        return "sent", f"Sent to {event['recipient']} via Gmail SMTP."
-    return "not_sent", "No Slack webhook or Gmail credentials configured."
+    if config.smtp_sender and config.smtp_password:
+        send_email(event, config)
+        return "sent", f"Sent to {event['recipient']} via SMTP."
+    return "not_sent", "No Slack webhook or SMTP credentials configured."
 
 
 def send_slack(event: dict[str, Any], webhook_url: str) -> None:
@@ -155,15 +159,15 @@ def send_slack(event: dict[str, Any], webhook_url: str) -> None:
         response.read()
 
 
-def send_gmail(event: dict[str, Any], config: NotificationConfig) -> None:
+def send_email(event: dict[str, Any], config: NotificationConfig) -> None:
     message = EmailMessage()
-    message["From"] = config.gmail_sender
+    message["From"] = config.smtp_sender
     message["To"] = event["recipient"]
     message["Subject"] = event["subject"]
     message.set_content(event["body"])
     context = ssl.create_default_context()
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as smtp:
-        smtp.login(config.gmail_sender, config.gmail_app_password)
+    with smtplib.SMTP_SSL(config.smtp_host, config.smtp_port, context=context) as smtp:
+        smtp.login(config.smtp_sender, config.smtp_password)
         smtp.send_message(message)
 
 

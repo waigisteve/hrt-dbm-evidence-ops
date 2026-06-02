@@ -144,7 +144,7 @@ It detects issues such as:
 
 It then produces recommendations for leadership, investigations, legal, CSO partners, data protection, monitoring, operations, and AI review.
 
-## Threshold Notifications: Slack and Gmail
+## Threshold Notifications: Slack and Email
 
 The AI recommendation layer can compose stakeholder notifications for anomalies that exceed configured thresholds. It is dry-run by default so the demo does not accidentally send sensitive alerts.
 
@@ -177,9 +177,29 @@ To enable Gmail SMTP delivery, use a Gmail app password rather than your normal 
 
 ```bash
 export VIDERE_NOTIFY_DRY_RUN=false
-export VIDERE_GMAIL_SENDER="sender@example.com"
-export VIDERE_GMAIL_APP_PASSWORD="app-password"
+export VIDERE_SMTP_HOST="smtp.gmail.com"
+export VIDERE_SMTP_PORT=465
+export VIDERE_SMTP_SENDER="sender@gmail.com"
+export VIDERE_SMTP_PASSWORD="gmail-app-password"
 export VIDERE_STAKEHOLDER_EMAILS="investigations:investigations@example.org,data_protection:dpo@example.org,legal:legal@example.org,leadership:leadership@example.org,monitoring:monitoring@example.org"
+python3 scripts/refresh_olap.py
+```
+
+The older Gmail-specific aliases also work:
+
+```bash
+export VIDERE_GMAIL_SENDER="sender@gmail.com"
+export VIDERE_GMAIL_APP_PASSWORD="gmail-app-password"
+```
+
+For another provider, keep the same pattern and change host, port, sender, and password:
+
+```bash
+export VIDERE_NOTIFY_DRY_RUN=false
+export VIDERE_SMTP_HOST="smtp.example.org"
+export VIDERE_SMTP_PORT=465
+export VIDERE_SMTP_SENDER="alerts@example.org"
+export VIDERE_SMTP_PASSWORD="smtp-password-or-app-password"
 python3 scripts/refresh_olap.py
 ```
 
