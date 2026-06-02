@@ -173,8 +173,8 @@ def slack_body(event: dict[str, Any]) -> str:
             f"*Owner:* {event['owner']}",
             f"*Count:* {event['count']}",
             f"*Type:* {event['type']}",
-            "",
-            event["body"],
+            "*Action:* Open the AI Review dashboard and review stakeholder recommendations.",
+            "_Redacted anomaly facts only. No raw media, hashes, precise locations, source names, or personal data._",
         ]
     )
 
