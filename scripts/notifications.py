@@ -36,6 +36,7 @@ class NotificationConfig:
     slack_webhook_url: str
     smtp_host: str
     smtp_port: int
+    smtp_security: str
     smtp_sender: str
     smtp_password: str
     timeout_seconds: int
@@ -50,6 +51,7 @@ def load_notification_config() -> NotificationConfig:
         slack_webhook_url=os.getenv("VIDERE_SLACK_WEBHOOK_URL", ""),
         smtp_host=os.getenv("VIDERE_SMTP_HOST", "smtp.gmail.com"),
         smtp_port=int(os.getenv("VIDERE_SMTP_PORT", "465")),
+        smtp_security=os.getenv("VIDERE_SMTP_SECURITY", "ssl").lower(),
         smtp_sender=os.getenv("VIDERE_SMTP_SENDER", os.getenv("VIDERE_GMAIL_SENDER", "")),
         smtp_password=os.getenv("VIDERE_SMTP_PASSWORD", os.getenv("VIDERE_GMAIL_APP_PASSWORD", "")),
         timeout_seconds=int(os.getenv("VIDERE_NOTIFY_TIMEOUT_SECONDS", "10")),
@@ -213,6 +215,14 @@ def send_email(event: dict[str, Any], config: NotificationConfig) -> None:
     message["Subject"] = event["subject"]
     message.set_content(event["body"])
     context = ssl.create_default_context()
+    if config.smtp_security == "starttls":
+        with smtplib.SMTP(config.smtp_host, config.smtp_port, timeout=config.timeout_seconds) as smtp:
+            smtp.ehlo()
+            smtp.starttls(context=context)
+            smtp.ehlo()
+            smtp.login(config.smtp_sender, config.smtp_password)
+            smtp.send_message(message)
+        return
     with smtplib.SMTP_SSL(config.smtp_host, config.smtp_port, timeout=config.timeout_seconds, context=context) as smtp:
         smtp.login(config.smtp_sender, config.smtp_password)
         smtp.send_message(message)

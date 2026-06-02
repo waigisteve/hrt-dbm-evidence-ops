@@ -179,6 +179,7 @@ To enable Gmail SMTP delivery, use a Gmail app password rather than your normal 
 export VIDERE_NOTIFY_DRY_RUN=false
 export VIDERE_SMTP_HOST="smtp.gmail.com"
 export VIDERE_SMTP_PORT=465
+export VIDERE_SMTP_SECURITY="ssl"
 export VIDERE_SMTP_SENDER="sender@gmail.com"
 export VIDERE_SMTP_PASSWORD="gmail-app-password"
 export VIDERE_STAKEHOLDER_EMAILS="investigations:investigations@example.org,data_protection:dpo@example.org,legal:legal@example.org,leadership:leadership@example.org,monitoring:monitoring@example.org"
@@ -194,9 +195,19 @@ export VIDERE_NOTIFY_MIN_COUNT=1
 export VIDERE_SLACK_WEBHOOK_URL="https://hooks.slack.com/services/REDACTED"
 export VIDERE_SMTP_HOST="smtp.gmail.com"
 export VIDERE_SMTP_PORT=465
+export VIDERE_SMTP_SECURITY="ssl"
 export VIDERE_SMTP_SENDER="sender@gmail.com"
 export VIDERE_SMTP_PASSWORD="gmail-app-password"
 export VIDERE_STAKEHOLDER_EMAILS="investigations:investigations@example.org,data_protection:dpo@example.org,legal:legal@example.org,leadership:leadership@example.org,monitoring:monitoring@example.org"
+python3 scripts/refresh_olap.py
+```
+
+If Gmail SSL on port 465 times out, use STARTTLS on port 587:
+
+```bash
+export VIDERE_SMTP_HOST="smtp.gmail.com"
+export VIDERE_SMTP_PORT=587
+export VIDERE_SMTP_SECURITY="starttls"
 python3 scripts/refresh_olap.py
 ```
 
@@ -213,6 +224,7 @@ For another provider, keep the same pattern and change host, port, sender, and p
 export VIDERE_NOTIFY_DRY_RUN=false
 export VIDERE_SMTP_HOST="smtp.example.org"
 export VIDERE_SMTP_PORT=465
+export VIDERE_SMTP_SECURITY="ssl"
 export VIDERE_SMTP_SENDER="alerts@example.org"
 export VIDERE_SMTP_PASSWORD="smtp-password-or-app-password"
 python3 scripts/refresh_olap.py
