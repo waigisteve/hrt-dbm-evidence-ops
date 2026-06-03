@@ -21,12 +21,22 @@ Protected route:
 GET /api/dashboard/{role}
 ```
 
+Protected read endpoints:
+
+| Endpoint | Allowed demo roles |
+|---|---|
+| `GET /api/dashboard/{role}` | Token role must exactly match `{role}` |
+| `GET /api/dashboard` | Internal roles only: all roles except `partners` |
+| `GET /api/anomalies` | `ai`, `monitoring`, `data_protection`, `leadership` |
+| `GET /api/notifications` | `monitoring`, `data_protection` |
+
 Public local routes:
 
 ```text
 GET /api/health
 GET /api/openapi.json
 GET /api/docs
+POST /api/auth/demo-login
 ```
 
 Demo token controls:
@@ -35,6 +45,7 @@ Demo token controls:
 - Tokens expire after `HRT_DEMO_TOKEN_TTL_SECONDS`, default `3600`.
 - Token role must match the requested `{role}`.
 - Wrong-role access returns `403`.
+- Endpoint-level role violations return `403`.
 - Missing or invalid tokens return `401`.
 
 This is intentionally not production authentication. It proves the control point: the browser no longer decides access alone; the API enforces the stakeholder role.

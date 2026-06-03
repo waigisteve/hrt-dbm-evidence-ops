@@ -222,6 +222,7 @@ Implemented local proof of concept:
 
 - `POST /api/auth/demo-login` issues a signed local demo role token.
 - `GET /api/dashboard/{role}` requires `Authorization: Bearer <token>`.
+- `GET /api/dashboard`, `GET /api/anomalies`, and `GET /api/notifications` require tokens and role allowlists.
 - Wrong-role access returns `403`.
 - Missing or invalid tokens return `401`.
 

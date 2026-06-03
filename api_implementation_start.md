@@ -40,10 +40,10 @@ Endpoints:
 |---|---|
 | `GET /api/health` | Confirms API and dashboard snapshot availability |
 | `POST /api/auth/demo-login` | Returns a signed local demo role token |
-| `GET /api/dashboard` | Returns the full current dashboard snapshot |
+| `GET /api/dashboard` | Returns the protected full current dashboard snapshot for internal roles |
 | `GET /api/dashboard/{role}` | Returns a protected role-shaped dashboard response |
-| `GET /api/anomalies` | Returns AI anomaly facts |
-| `GET /api/notifications` | Returns notification delivery status |
+| `GET /api/anomalies` | Returns protected AI anomaly facts for approved roles |
+| `GET /api/notifications` | Returns protected notification delivery status for monitoring/data protection |
 | `GET /api/openapi.json` | Returns the OpenAPI 3.0 contract |
 | `GET /api/docs` | Returns a simple browser-readable API documentation page |
 
@@ -52,6 +52,7 @@ Dashboard integration:
 - `dashboard/app.js` now prefers `GET http://127.0.0.1:8770/api/dashboard/{role}` for the active stakeholder tab.
 - It also reads `GET http://127.0.0.1:8770/api/dashboard` as shared demo context for filters and cross-tab charts.
 - It requests a local demo token from `POST /api/auth/demo-login` and sends it as `Authorization: Bearer <token>`.
+- Sensitive read endpoints now require a valid local demo token.
 - If the API is offline, it falls back to `/dashboard/data.json`.
 - The dashboard header shows `Role API online` or `API offline fallback`.
 

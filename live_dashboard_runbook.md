@@ -92,7 +92,10 @@ The local API enforces a demo role token:
 
 ```text
 POST /api/auth/demo-login
+GET /api/dashboard
 GET /api/dashboard/{role}
+GET /api/anomalies
+GET /api/notifications
 ```
 
 The demo password is:

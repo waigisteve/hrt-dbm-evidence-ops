@@ -108,16 +108,19 @@ async function loadDashboardSnapshot() {
     const timestamp = Date.now();
     const authHeaders = { Authorization: `Bearer ${accessToken}` };
     const [snapshotResponse, roleResponse] = await Promise.all([
-      fetch(`${API_BASE}/api/dashboard?ts=${timestamp}`, { cache: "no-store" }),
+      fetch(`${API_BASE}/api/dashboard?ts=${timestamp}`, { cache: "no-store", headers: authHeaders }),
       fetch(`${API_BASE}/api/dashboard/${activeRole}?ts=${timestamp}`, { cache: "no-store", headers: authHeaders })
     ]);
-    if (!snapshotResponse.ok) throw new Error(`API snapshot returned ${snapshotResponse.status}`);
     if ([401, 403].includes(roleResponse.status)) {
       throw new Error(`AUTH_BLOCKED:${roleResponse.status}`);
     }
     if (!roleResponse.ok) throw new Error(`API role view returned ${roleResponse.status}`);
-    const snapshot = await snapshotResponse.json();
     const roleView = await roleResponse.json();
+    if ([401, 403].includes(snapshotResponse.status)) {
+      return { data: roleOnlySnapshot(roleView), source: "role-api" };
+    }
+    if (!snapshotResponse.ok) throw new Error(`API snapshot returned ${snapshotResponse.status}`);
+    const snapshot = await snapshotResponse.json();
     return { data: mergeRoleView(snapshot, roleView), source: "role-api" };
   } catch (error) {
     if (String(error.message || "").startsWith("AUTH_BLOCKED:")) {
@@ -127,6 +130,25 @@ async function loadDashboardSnapshot() {
     if (!response.ok) throw new Error(`Fallback snapshot returned ${response.status}`);
     return { data: await response.json(), source: "fallback" };
   }
+}
+
+function roleOnlySnapshot(roleView) {
+  const rows = Array.isArray(roleView.data) ? roleView.data : [];
+  return {
+    generated_at: roleView.generated_at,
+    kpis: roleView.kpis || {},
+    charts: roleView.charts || {},
+    leadership: roleView.role === "leadership" ? rows : [],
+    investigations: roleView.role === "investigations" ? rows : [],
+    legal: roleView.role === "legal" ? rows : [],
+    partners: roleView.role === "partners" ? rows : [],
+    data_protection: roleView.role === "data_protection" ? rows : [],
+    ai: roleView.role === "ai" ? rows : [],
+    media: roleView.role === "media" ? rows : [],
+    monitoring: roleView.role === "monitoring" ? rows : [],
+    ai_recommendations: roleView.ai_recommendations || {},
+    notifications: roleView.notifications || {}
+  };
 }
 
 function mergeRoleView(snapshot, roleView) {

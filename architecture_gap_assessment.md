@@ -102,6 +102,7 @@ Current state:
 - The dashboard has a simulated role selector and password field in `dashboard/index.html`.
 - `dashboard/app.js` requests a signed local demo token from `POST /api/auth/demo-login`.
 - `GET /api/dashboard/{role}` requires a Bearer token.
+- `GET /api/dashboard`, `GET /api/anomalies`, and `GET /api/notifications` also require a Bearer token and enforce endpoint-level role allowlists.
 - The API checks token signature, expiry, and role match.
 - Wrong-role access is rejected with `403`.
 - Missing or invalid tokens are rejected with `401`.

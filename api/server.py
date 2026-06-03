@@ -40,6 +40,9 @@ VALID_ROLES = {
     "media",
     "monitoring",
 }
+INTERNAL_ROLES = VALID_ROLES - {"partners"}
+ANOMALY_ROLES = {"ai", "monitoring", "data_protection", "leadership"}
+NOTIFICATION_ROLES = {"monitoring", "data_protection"}
 
 
 class ApiHandler(BaseHTTPRequestHandler):
@@ -90,6 +93,9 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/api/dashboard":
+            claims = self.authorize_any_role(INTERNAL_ROLES)
+            if claims is None:
+                return
             self.send_json(self.snapshot())
             return
 
@@ -99,11 +105,17 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/api/anomalies":
+            claims = self.authorize_any_role(ANOMALY_ROLES)
+            if claims is None:
+                return
             snapshot = self.snapshot()
             self.send_json(snapshot.get("ai_recommendations", {}).get("anomalies", []))
             return
 
         if path == "/api/notifications":
+            claims = self.authorize_any_role(NOTIFICATION_ROLES)
+            if claims is None:
+                return
             self.send_json(self.snapshot().get("notifications", {}))
             return
 
@@ -164,13 +176,8 @@ class ApiHandler(BaseHTTPRequestHandler):
         )
 
     def authorize_role(self, requested_role: str) -> dict[str, Any] | None:
-        auth_header = self.headers.get("Authorization", "")
-        if not auth_header.startswith("Bearer "):
-            self.send_json({"error": "missing_bearer_token"}, HTTPStatus.UNAUTHORIZED)
-            return None
-        claims = verify_demo_token(auth_header.removeprefix("Bearer ").strip())
+        claims = self.read_bearer_claims()
         if claims is None:
-            self.send_json({"error": "invalid_or_expired_token"}, HTTPStatus.UNAUTHORIZED)
             return None
         token_role = claims.get("role")
         if token_role != requested_role:
@@ -178,6 +185,30 @@ class ApiHandler(BaseHTTPRequestHandler):
                 {"error": "forbidden_role", "token_role": token_role, "requested_role": requested_role},
                 HTTPStatus.FORBIDDEN,
             )
+            return None
+        return claims
+
+    def authorize_any_role(self, allowed_roles: set[str]) -> dict[str, Any] | None:
+        claims = self.read_bearer_claims()
+        if claims is None:
+            return None
+        token_role = claims.get("role")
+        if token_role not in allowed_roles:
+            self.send_json(
+                {"error": "forbidden_endpoint", "token_role": token_role, "allowed_roles": sorted(allowed_roles)},
+                HTTPStatus.FORBIDDEN,
+            )
+            return None
+        return claims
+
+    def read_bearer_claims(self) -> dict[str, Any] | None:
+        auth_header = self.headers.get("Authorization", "")
+        if not auth_header.startswith("Bearer "):
+            self.send_json({"error": "missing_bearer_token"}, HTTPStatus.UNAUTHORIZED)
+            return None
+        claims = verify_demo_token(auth_header.removeprefix("Bearer ").strip())
+        if claims is None:
+            self.send_json({"error": "invalid_or_expired_token"}, HTTPStatus.UNAUTHORIZED)
             return None
         return claims
 

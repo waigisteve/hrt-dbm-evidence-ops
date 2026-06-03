@@ -71,7 +71,12 @@ def openapi_spec() -> dict[str, Any]:
             "/api/dashboard": {
                 "get": {
                     "summary": "Full dashboard snapshot",
-                    "responses": {"200": {"description": "Full generated dashboard read model"}},
+                    "security": [{"bearerAuth": []}],
+                    "responses": {
+                        "200": {"description": "Full generated dashboard read model"},
+                        "401": {"description": "Missing or invalid token"},
+                        "403": {"description": "Role is not allowed to access full snapshot"},
+                    },
                 }
             },
             "/api/dashboard/{role}": {
@@ -109,13 +114,23 @@ def openapi_spec() -> dict[str, Any]:
             "/api/anomalies": {
                 "get": {
                     "summary": "AI anomaly facts",
-                    "responses": {"200": {"description": "Redacted anomaly facts"}},
+                    "security": [{"bearerAuth": []}],
+                    "responses": {
+                        "200": {"description": "Redacted anomaly facts"},
+                        "401": {"description": "Missing or invalid token"},
+                        "403": {"description": "Role is not allowed to access anomalies"},
+                    },
                 }
             },
             "/api/notifications": {
                 "get": {
                     "summary": "Notification delivery status",
-                    "responses": {"200": {"description": "Threshold notification events and delivery states"}},
+                    "security": [{"bearerAuth": []}],
+                    "responses": {
+                        "200": {"description": "Threshold notification events and delivery states"},
+                        "401": {"description": "Missing or invalid token"},
+                        "403": {"description": "Role is not allowed to access notifications"},
+                    },
                 }
             },
             "/api/openapi.json": {
