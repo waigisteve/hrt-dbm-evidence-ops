@@ -9,6 +9,7 @@ The system demonstrates a Database Manager approach that separates operational e
 - **PostgreSQL OLTP** protects the operational record: source, incident, media metadata, custody, verification, legal status, access classification, and retention.
 - **NoSQL media catalog/object store** tracks media objects, previews, hashes, MIME decisions, safety status, and quarantine paths.
 - **DuckDB OLAP** provides a rebuildable analytics layer for dashboards without putting pressure on the operational evidence database.
+- **REST API and OpenAPI contract** expose controlled local read endpoints for health, stakeholder dashboard views, AI anomalies, notification status, and API documentation.
 - **Dashboard** presents stakeholder-specific views: executives see concise strategic metrics, operators get filters and workflow queues, legal teams get precise readiness actions, partners see masked aggregates, data protection sees alerts, and AI reviewers see human-in-the-loop queues.
 
 ## What Is Achieved
@@ -19,6 +20,7 @@ The system demonstrates a Database Manager approach that separates operational e
 | Evidence integrity | SHA-256 hashes, custody events, metadata fields, source links | Supports traceability and defensibility |
 | OLTP/OLAP separation | PostgreSQL for operations, DuckDB for reporting | Protects evidence workflows from dashboard workload |
 | NoSQL media model | JSONL document catalog plus object-store folders | Demonstrates scalable media-object handling without storing binaries in relational tables |
+| REST API boundary | Local API service with OpenAPI contract and browser docs | Creates the path toward JWT, API gateway, server-side authorization, and dashboard API consumption |
 | Stakeholder dashboards | Separate views for leadership, investigations, legal, CSO partners, data protection, AI, media, monitoring | Matches decision needs and cognitive load |
 | AI governance | AI review queue with human-review controls | Shows safe innovation without automated evidentiary conclusions |
 | Monitoring | Custody gaps, restricted concentration, unverified backlog, source skew, ETL duration | Tracks system and evidentiary health |
@@ -29,6 +31,7 @@ The system demonstrates a Database Manager approach that separates operational e
 | --- | --- | --- |
 | Authentication | Simulated stakeholder selector | Real SSO, MFA, RBAC, session management |
 | Row-level security | UI-level separation only | PostgreSQL RLS policies and server-side authorization |
+| API runtime | Local Python `http.server` REST wrapper | Production web framework/runtime, request validation, auth middleware, structured logs |
 | Media storage | Local synthetic object store | Encrypted S3/Azure Blob/object store with lifecycle policy |
 | Malware scanning | Extension/MIME/hash checks | Antivirus, file magic, sandboxing, quarantine workflow |
 | ETL | Full refresh into DuckDB | CDC, incremental loads, orchestration, data quality gates |
@@ -87,7 +90,11 @@ flowchart LR
     MediaCatalog[media_store/catalog.jsonl] --> ETL
     ETL --> Duck[(DuckDB OLAP evidence_fact)]
     ETL --> Snapshot[dashboard/data.json]
-    Snapshot --> Dashboard[Stakeholder dashboard]
+    Snapshot --> Api[api/server.py REST API]
+    Api --> OpenAPI[api/openapi.py OpenAPI contract]
+    Api --> ApiDocs[/api/docs + /api/openapi.json]
+    Snapshot -. local demo direct read .-> Dashboard[Stakeholder dashboard]
+    Api -. next step .-> Dashboard
 
     Dashboard --> Leadership[Leadership strategic view]
     Dashboard --> Investigations[Investigation workflow view]
@@ -97,6 +104,8 @@ flowchart LR
     Dashboard --> AI[AI human-review queue]
     Dashboard --> Media[NoSQL media gallery]
 ```
+
+Current local behavior: the browser dashboard still reads `dashboard/data.json` directly. The implemented API wraps the same snapshot through REST endpoints. The next implementation step is to move `dashboard/app.js` to fetch role-shaped API responses from `/api/dashboard/{role}`.
 
 ## Schema Overview
 

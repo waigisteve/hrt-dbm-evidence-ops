@@ -28,6 +28,12 @@ flowchart LR
         Snapshot[dashboard/data.json]
     end
 
+    subgraph API[REST API Boundary]
+        ApiServer[api/server.py]
+        ApiContract[api/openapi.py]
+        ApiDocs[/api/docs + /api/openapi.json]
+    end
+
     subgraph Dashboard[Stakeholder Dashboards]
         Lead[Leadership]
         Ops[Investigations]
@@ -55,11 +61,20 @@ flowchart LR
     Catalog --> ETL
     ETL --> Duck
     ETL --> Snapshot
-    Snapshot --> Lead
-    Snapshot --> Ops
-    Snapshot --> Law
-    Snapshot --> Partner
-    Snapshot --> DP
-    Snapshot --> AI
-    Snapshot --> Mon
-
+    Snapshot --> ApiServer
+    ApiServer --> ApiContract
+    ApiServer --> ApiDocs
+    Snapshot -. local demo direct read .-> Lead
+    Snapshot -. local demo direct read .-> Ops
+    Snapshot -. local demo direct read .-> Law
+    Snapshot -. local demo direct read .-> Partner
+    Snapshot -. local demo direct read .-> DP
+    Snapshot -. local demo direct read .-> AI
+    Snapshot -. local demo direct read .-> Mon
+    ApiServer -. next step API fetch .-> Lead
+    ApiServer -. next step API fetch .-> Ops
+    ApiServer -. next step API fetch .-> Law
+    ApiServer -. next step API fetch .-> Partner
+    ApiServer -. next step API fetch .-> DP
+    ApiServer -. next step API fetch .-> AI
+    ApiServer -. next step API fetch .-> Mon
