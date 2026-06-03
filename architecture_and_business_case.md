@@ -86,15 +86,15 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    PG[(PostgreSQL OLTP)] --> ETL[scripts/refresh_olap.py]
-    MediaCatalog[media_store/catalog.jsonl] --> ETL
+    PG[("PostgreSQL OLTP")] --> ETL["scripts/refresh_olap.py"]
+    MediaCatalog["media_store/catalog.jsonl"] --> ETL
     ETL --> Duck[(DuckDB OLAP evidence_fact)]
-    ETL --> Snapshot[dashboard/data.json]
-    Snapshot --> Api[api/server.py REST API]
-    Api --> OpenAPI[api/openapi.py OpenAPI contract]
-    Api --> ApiDocs[/api/docs + /api/openapi.json]
-    Snapshot -. local demo direct read .-> Dashboard[Stakeholder dashboard]
-    Api -. next step .-> Dashboard
+    ETL --> Snapshot["dashboard/data.json"]
+    Snapshot --> Api["api/server.py REST API"]
+    Api --> OpenAPI["api/openapi.py OpenAPI contract"]
+    Api --> ApiDocs["/api/docs + /api/openapi.json"]
+    Snapshot -.-> Dashboard["Stakeholder dashboard"]
+    Api -.-> Dashboard
 
     Dashboard --> Leadership[Leadership strategic view]
     Dashboard --> Investigations[Investigation workflow view]
