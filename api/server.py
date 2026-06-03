@@ -35,6 +35,23 @@ class ApiHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         path = urlparse(self.path).path.rstrip("/") or "/"
 
+        if path in {"/", "/api"}:
+            self.send_json(
+                {
+                    "service": "hrt-api",
+                    "status": "ok" if SNAPSHOT_JSON.exists() else "degraded",
+                    "endpoints": {
+                        "health": "/api/health",
+                        "full_dashboard_snapshot": "/api/dashboard",
+                        "role_dashboard": "/api/dashboard/{role}",
+                        "anomalies": "/api/anomalies",
+                        "notifications": "/api/notifications",
+                    },
+                    "valid_roles": sorted(VALID_ROLES),
+                }
+            )
+            return
+
         if path == "/api/health":
             self.send_json(
                 {
