@@ -29,6 +29,7 @@ File:
 
 ```text
 api/server.py
+api/openapi.py
 ```
 
 Endpoints:
@@ -40,6 +41,8 @@ Endpoints:
 | `GET /api/dashboard/{role}` | Returns a role-shaped dashboard response |
 | `GET /api/anomalies` | Returns AI anomaly facts |
 | `GET /api/notifications` | Returns notification delivery status |
+| `GET /api/openapi.json` | Returns the OpenAPI 3.0 contract |
+| `GET /api/docs` | Returns a simple browser-readable API documentation page |
 
 ## How To Run
 
@@ -62,6 +65,8 @@ http://127.0.0.1:8770/api/health
 http://127.0.0.1:8770/api/dashboard/leadership
 http://127.0.0.1:8770/api/anomalies
 http://127.0.0.1:8770/api/notifications
+http://127.0.0.1:8770/api/openapi.json
+http://127.0.0.1:8770/api/docs
 ```
 
 Command-line test:
@@ -77,6 +82,7 @@ curl http://127.0.0.1:8770/api/health
 - It does not replace the dashboard JSON fetch yet.
 - It does not add an API gateway.
 - It does not add a notification queue.
+- It does not implement GraphQL or gRPC; this step is REST-style JSON over HTTP.
 
 Those are the next steps.
 
@@ -91,4 +97,3 @@ Update `dashboard/app.js` so it fetches from:
 instead of reading the full `dashboard/data.json` directly.
 
 That creates a clean path to add JWT and server-side role filtering.
-

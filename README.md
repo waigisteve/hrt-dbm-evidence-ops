@@ -63,7 +63,9 @@ psql -d hrt_prep -f sql/analysis_queries.sql
    - Walk through the least-headwind implementation path, dependency map, Gantt plan, decision gates, and first sprint.
 
 13. Use `api_implementation_start.md`.
-   - Start the first low-cost implementation step: a minimal backend API around the existing dashboard snapshot.
+   - Start the first low-cost implementation step: a minimal REST-style backend API around the existing dashboard snapshot.
+   - Local API docs: `http://127.0.0.1:8770/api/docs`
+   - OpenAPI contract: `http://127.0.0.1:8770/api/openapi.json`
 
 14. Follow `practice_schedule.md`.
    - The schedule gives a 3-week route from research to final mock interview.
