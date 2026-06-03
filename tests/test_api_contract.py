@@ -39,6 +39,7 @@ def test_openapi_contract_documents_current_endpoints() -> None:
         "/",
         "/api",
         "/api/health",
+        "/api/auth/demo-login",
         "/api/dashboard",
         "/api/dashboard/{role}",
         "/api/anomalies",
@@ -47,4 +48,16 @@ def test_openapi_contract_documents_current_endpoints() -> None:
         "/api/docs",
     ]:
         assert path in paths
+    assert "post" in paths["/api/auth/demo-login"]
+    for path in [
+        "/",
+        "/api",
+        "/api/health",
+        "/api/dashboard",
+        "/api/dashboard/{role}",
+        "/api/anomalies",
+        "/api/notifications",
+        "/api/openapi.json",
+        "/api/docs",
+    ]:
         assert "get" in paths[path]

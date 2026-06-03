@@ -14,6 +14,15 @@ def openapi_spec() -> dict[str, Any]:
             "description": "REST-style JSON API wrapping the HRT dashboard reporting snapshot.",
         },
         "servers": [{"url": "http://127.0.0.1:8770", "description": "Local development API"}],
+        "components": {
+            "securitySchemes": {
+                "bearerAuth": {
+                    "type": "http",
+                    "scheme": "bearer",
+                    "description": "Local demo HMAC token. Production should use OIDC/JWT.",
+                }
+            }
+        },
         "paths": {
             "/": {
                 "get": {
@@ -33,6 +42,32 @@ def openapi_spec() -> dict[str, Any]:
                     "responses": {"200": {"description": "API and snapshot health"}},
                 }
             },
+            "/api/auth/demo-login": {
+                "post": {
+                    "summary": "Issue local demo role token",
+                    "description": "Local-only proof of concept for backend role enforcement. Not production authentication.",
+                    "requestBody": {
+                        "required": True,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": ["role", "password"],
+                                    "properties": {
+                                        "role": {"type": "string"},
+                                        "password": {"type": "string"},
+                                    },
+                                }
+                            }
+                        },
+                    },
+                    "responses": {
+                        "200": {"description": "Bearer token for requested demo role"},
+                        "400": {"description": "Invalid role"},
+                        "401": {"description": "Invalid demo password"},
+                    },
+                }
+            },
             "/api/dashboard": {
                 "get": {
                     "summary": "Full dashboard snapshot",
@@ -42,6 +77,7 @@ def openapi_spec() -> dict[str, Any]:
             "/api/dashboard/{role}": {
                 "get": {
                     "summary": "Role-shaped dashboard response",
+                    "security": [{"bearerAuth": []}],
                     "parameters": [
                         {
                             "name": "role",
@@ -65,6 +101,8 @@ def openapi_spec() -> dict[str, Any]:
                     "responses": {
                         "200": {"description": "Dashboard data for the requested role"},
                         "400": {"description": "Invalid role"},
+                        "401": {"description": "Missing or invalid token"},
+                        "403": {"description": "Token role does not match requested role"},
                     },
                 }
             },

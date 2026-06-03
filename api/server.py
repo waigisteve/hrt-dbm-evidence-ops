@@ -8,9 +8,13 @@ dashboard, or ETL flow.
 
 from __future__ import annotations
 
+import base64
+import hashlib
+import hmac
 import json
 import os
 import sys
+import time
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -24,6 +28,8 @@ sys.path.insert(0, str(ROOT))
 from api.openapi import openapi_spec  # noqa: E402
 
 SNAPSHOT_JSON = ROOT / "dashboard" / "data.json"
+DEMO_TOKEN_SECRET = os.getenv("HRT_DEMO_TOKEN_SECRET", "hrt-local-demo-secret-change-me")
+DEMO_TOKEN_TTL_SECONDS = int(os.getenv("HRT_DEMO_TOKEN_TTL_SECONDS", "3600"))
 VALID_ROLES = {
     "leadership",
     "investigations",
@@ -51,6 +57,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "service": "hrt-api",
                     "status": "ok" if SNAPSHOT_JSON.exists() else "degraded",
                     "endpoints": {
+                        "demo_login": "/api/auth/demo-login",
                         "health": "/api/health",
                         "full_dashboard_snapshot": "/api/dashboard",
                         "role_dashboard": "/api/dashboard/{role}",
@@ -102,6 +109,35 @@ class ApiHandler(BaseHTTPRequestHandler):
 
         self.send_json({"error": "not_found", "path": path}, HTTPStatus.NOT_FOUND)
 
+    def do_POST(self) -> None:
+        path = urlparse(self.path).path.rstrip("/") or "/"
+
+        if path == "/api/auth/demo-login":
+            payload = self.read_json_body()
+            role = str(payload.get("role", ""))
+            password = str(payload.get("password", ""))
+            if role not in VALID_ROLES:
+                self.send_json(
+                    {"error": "invalid_role", "valid_roles": sorted(VALID_ROLES)},
+                    HTTPStatus.BAD_REQUEST,
+                )
+                return
+            if password != "demo":
+                self.send_json({"error": "invalid_demo_password"}, HTTPStatus.UNAUTHORIZED)
+                return
+            self.send_json(
+                {
+                    "token_type": "Bearer",
+                    "access_token": create_demo_token(role),
+                    "role": role,
+                    "expires_in": DEMO_TOKEN_TTL_SECONDS,
+                    "mode": "local_demo_hmac_token",
+                }
+            )
+            return
+
+        self.send_json({"error": "not_found", "path": path}, HTTPStatus.NOT_FOUND)
+
     def send_role_dashboard(self, role: str) -> None:
         if role not in VALID_ROLES:
             self.send_json(
@@ -109,12 +145,16 @@ class ApiHandler(BaseHTTPRequestHandler):
                 HTTPStatus.BAD_REQUEST,
             )
             return
+        claims = self.authorize_role(role)
+        if claims is None:
+            return
 
         snapshot = self.snapshot()
         self.send_json(
             {
                 "generated_at": snapshot.get("generated_at"),
                 "role": role,
+                "subject": claims.get("sub"),
                 "kpis": snapshot.get("kpis", {}),
                 "data": snapshot.get(role, []),
                 "charts": snapshot.get("charts", {}),
@@ -122,6 +162,35 @@ class ApiHandler(BaseHTTPRequestHandler):
                 "notifications": snapshot.get("notifications", {}),
             }
         )
+
+    def authorize_role(self, requested_role: str) -> dict[str, Any] | None:
+        auth_header = self.headers.get("Authorization", "")
+        if not auth_header.startswith("Bearer "):
+            self.send_json({"error": "missing_bearer_token"}, HTTPStatus.UNAUTHORIZED)
+            return None
+        claims = verify_demo_token(auth_header.removeprefix("Bearer ").strip())
+        if claims is None:
+            self.send_json({"error": "invalid_or_expired_token"}, HTTPStatus.UNAUTHORIZED)
+            return None
+        token_role = claims.get("role")
+        if token_role != requested_role:
+            self.send_json(
+                {"error": "forbidden_role", "token_role": token_role, "requested_role": requested_role},
+                HTTPStatus.FORBIDDEN,
+            )
+            return None
+        return claims
+
+    def read_json_body(self) -> dict[str, Any]:
+        length = int(self.headers.get("Content-Length", "0") or "0")
+        if length <= 0:
+            return {}
+        body = self.rfile.read(length).decode("utf-8")
+        try:
+            payload = json.loads(body)
+        except json.JSONDecodeError:
+            return {}
+        return payload if isinstance(payload, dict) else {}
 
     def snapshot(self) -> dict[str, Any]:
         if not SNAPSHOT_JSON.exists():
@@ -149,7 +218,7 @@ class ApiHandler(BaseHTTPRequestHandler):
     def send_common_headers(self) -> None:
         self.send_header("Cache-Control", "no-store")
         self.send_header("Access-Control-Allow-Origin", "http://127.0.0.1:8766")
-        self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
     def log_message(self, format: str, *args: Any) -> None:
@@ -158,6 +227,7 @@ class ApiHandler(BaseHTTPRequestHandler):
 
 def api_docs_html() -> str:
     endpoints = [
+        ("POST", "/api/auth/demo-login", "Local demo role token"),
         ("GET", "/api/health", "API and snapshot health"),
         ("GET", "/api/dashboard", "Full dashboard snapshot"),
         ("GET", "/api/dashboard/leadership", "Role-shaped dashboard response"),
@@ -194,6 +264,52 @@ def api_docs_html() -> str:
 </body>
 </html>
 """
+
+
+def create_demo_token(role: str) -> str:
+    now = int(time.time())
+    claims = {
+        "sub": f"demo-user:{role}",
+        "role": role,
+        "iat": now,
+        "exp": now + DEMO_TOKEN_TTL_SECONDS,
+        "iss": "hrt-local-demo",
+    }
+    payload = encode_json(claims)
+    signature = sign(payload)
+    return f"{payload}.{signature}"
+
+
+def verify_demo_token(token: str) -> dict[str, Any] | None:
+    try:
+        payload, signature = token.split(".", 1)
+    except ValueError:
+        return None
+    if not hmac.compare_digest(sign(payload), signature):
+        return None
+    try:
+        claims = json.loads(base64.urlsafe_b64decode(pad_base64(payload)).decode("utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError, ValueError):
+        return None
+    if int(claims.get("exp", 0)) < int(time.time()):
+        return None
+    if claims.get("role") not in VALID_ROLES:
+        return None
+    return claims
+
+
+def encode_json(payload: dict[str, Any]) -> str:
+    body = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8")
+    return base64.urlsafe_b64encode(body).decode("ascii").rstrip("=")
+
+
+def sign(payload: str) -> str:
+    digest = hmac.new(DEMO_TOKEN_SECRET.encode("utf-8"), payload.encode("ascii"), hashlib.sha256).digest()
+    return base64.urlsafe_b64encode(digest).decode("ascii").rstrip("=")
+
+
+def pad_base64(value: str) -> bytes:
+    return (value + "=" * (-len(value) % 4)).encode("ascii")
 
 
 def main() -> None:

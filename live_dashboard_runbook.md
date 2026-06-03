@@ -15,6 +15,7 @@ DuckDB OLAP
 
 Dashboard
   - Prefers role-specific REST API reads from /api/dashboard/{role}
+  - Requests a local demo Bearer token before role-specific API reads
   - Falls back to dashboard/data.json generated from OLAP refresh if the API is offline
   - Simulates stakeholder login views
   - Refreshes every 5 seconds
@@ -86,6 +87,21 @@ Expected status:
 
 - `Role API online`: dashboard is using `/api/dashboard/{role}`.
 - `API offline fallback`: dashboard is using `dashboard/data.json` because the API is not reachable.
+
+The local API enforces a demo role token:
+
+```text
+POST /api/auth/demo-login
+GET /api/dashboard/{role}
+```
+
+The demo password is:
+
+```text
+demo
+```
+
+This proves backend role enforcement, but production should replace it with OIDC/JWT from a real identity provider.
 
 ## Run the One-Hour Continuous Simulation
 

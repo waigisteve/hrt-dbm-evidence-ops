@@ -67,7 +67,10 @@ psql -d hrt_prep -f sql/analysis_queries.sql
    - Local API docs: `http://127.0.0.1:8770/api/docs`
    - OpenAPI contract: `http://127.0.0.1:8770/api/openapi.json`
 
-14. Follow `practice_schedule.md`.
+14. Use `auth_rbac_implementation.md`.
+   - Explain the local demo token/RBAC proof of concept and production identity-provider recommendation.
+
+15. Follow `practice_schedule.md`.
    - The schedule gives a 3-week route from research to final mock interview.
 
 ## Positioning Statement

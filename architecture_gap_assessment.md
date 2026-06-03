@@ -8,7 +8,7 @@ This document shows how selected production architecture topics are represented 
 |---|---|---|---|
 | APIs | Minimal REST-style API implemented; dashboard now uses role-specific API reads with static JSON fallback | `api/server.py`, `api/openapi.py`, `dashboard/app.js`, `api_implementation_start.md` | Add authenticated intake APIs, refresh control, server-side authorization, request validation, and production framework/runtime |
 | API gateway | Not implemented | None | Add gateway/reverse proxy for routing, TLS, rate limiting, authentication, request logging, and WAF controls |
-| JWT | Not implemented | `dashboard/index.html`, `dashboard/app.js` | Replace simulated login with OIDC/JWT validation and server-side authorization |
+| JWT | Local demo token/RBAC implemented; production OIDC/JWT not implemented | `api/server.py`, `dashboard/app.js`, `auth_rbac_implementation.md` | Replace local demo token with OIDC/JWT validation, provider JWKS, issuer/audience checks, MFA, and production audit logging |
 | Webhooks | Implemented outbound only | `scripts/notifications.py` | Add retry queues, idempotency keys, signing, backoff, and delivery audit table |
 | Webhook scalability | Partially simulated | `scripts/notifications.py` | Move notification delivery to async workers/queue instead of blocking `refresh_olap.py` |
 | Proxy | Documented for pgAdmin only | `pgadmin-wsl-postgresql-connection-guide.md` | Add production reverse proxy/API gateway pattern for dashboard/API access |
@@ -100,8 +100,12 @@ Responsibilities:
 Current state:
 
 - The dashboard has a simulated role selector and password field in `dashboard/index.html`.
-- `dashboard/app.js` switches views in the browser.
-- There is no real authentication, JWT, session management, MFA, or server-side authorization.
+- `dashboard/app.js` requests a signed local demo token from `POST /api/auth/demo-login`.
+- `GET /api/dashboard/{role}` requires a Bearer token.
+- The API checks token signature, expiry, and role match.
+- Wrong-role access is rejected with `403`.
+- Missing or invalid tokens are rejected with `401`.
+- This is still not production authentication, session management, MFA, or full OIDC/JWT.
 - `live_dashboard_runbook.md` explicitly notes this is not production authentication.
 
 Production recommendation:

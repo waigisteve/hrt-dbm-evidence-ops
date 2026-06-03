@@ -31,6 +31,7 @@ File:
 api/server.py
 api/openapi.py
 dashboard/app.js
+auth_rbac_implementation.md
 ```
 
 Endpoints:
@@ -38,8 +39,9 @@ Endpoints:
 | Endpoint | Purpose |
 |---|---|
 | `GET /api/health` | Confirms API and dashboard snapshot availability |
+| `POST /api/auth/demo-login` | Returns a signed local demo role token |
 | `GET /api/dashboard` | Returns the full current dashboard snapshot |
-| `GET /api/dashboard/{role}` | Returns a role-shaped dashboard response |
+| `GET /api/dashboard/{role}` | Returns a protected role-shaped dashboard response |
 | `GET /api/anomalies` | Returns AI anomaly facts |
 | `GET /api/notifications` | Returns notification delivery status |
 | `GET /api/openapi.json` | Returns the OpenAPI 3.0 contract |
@@ -49,6 +51,7 @@ Dashboard integration:
 
 - `dashboard/app.js` now prefers `GET http://127.0.0.1:8770/api/dashboard/{role}` for the active stakeholder tab.
 - It also reads `GET http://127.0.0.1:8770/api/dashboard` as shared demo context for filters and cross-tab charts.
+- It requests a local demo token from `POST /api/auth/demo-login` and sends it as `Authorization: Bearer <token>`.
 - If the API is offline, it falls back to `/dashboard/data.json`.
 - The dashboard header shows `Role API online` or `API offline fallback`.
 
@@ -96,10 +99,10 @@ Those are the next steps.
 
 ## Next Baby Step
 
-Add lightweight JWT/RBAC proof of concept around role-specific reads:
+Replace the local demo token with real OIDC/JWT validation:
 
 ```text
 GET /api/dashboard/{role}
 ```
 
-That will make each stakeholder tab request only the read model it is allowed to see, with the backend rejecting wrong-role access.
+The recommended production path is Microsoft Entra ID if the organisation already uses Microsoft 365, or Keycloak if licence cost must stay near-zero and the team can operate it securely.

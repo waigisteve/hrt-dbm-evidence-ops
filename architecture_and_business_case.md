@@ -91,9 +91,10 @@ flowchart LR
     ETL --> Duck[(DuckDB OLAP evidence_fact)]
     ETL --> Snapshot["dashboard/data.json"]
     Snapshot --> Api["api/server.py REST API"]
+    Api --> Auth["demo token + RBAC check"]
     Api --> OpenAPI["api/openapi.py OpenAPI contract"]
     Api --> ApiDocs["/api/docs + /api/openapi.json"]
-    Api --> RoleApi["/api/dashboard/{role}"]
+    Auth --> RoleApi["/api/dashboard/{role}"]
     RoleApi --> Dashboard["Stakeholder dashboard"]
     Snapshot -. fallback if API offline .-> Dashboard
 

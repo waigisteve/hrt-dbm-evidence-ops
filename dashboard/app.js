@@ -35,11 +35,13 @@ const notes = {
 let activeRole = "leadership";
 let latestData = null;
 let latestSource = "waiting";
+let accessToken = "";
+let tokenRole = "";
 
 loginButton.addEventListener("click", () => {
   activeRole = roleSelect.value;
   syncRoleNav();
-  load();
+  authenticateAndLoad();
 });
 
 roleButtons.forEach(button => {
@@ -47,7 +49,7 @@ roleButtons.forEach(button => {
     activeRole = button.dataset.role;
     roleSelect.value = activeRole;
     syncRoleNav();
-    load();
+    authenticateAndLoad();
   });
 });
 
@@ -62,27 +64,65 @@ Object.values(filters).forEach(filter => {
 });
 
 async function load() {
-  const loaded = await loadDashboardSnapshot();
-  latestData = loaded.data;
-  latestSource = loaded.source;
-  populateFilters(latestData.investigations || []);
-  render();
-  renderUpdatedStatus();
+  try {
+    if (!accessToken || tokenRole !== activeRole) {
+      await authenticateRole(activeRole);
+    }
+    const loaded = await loadDashboardSnapshot();
+    latestData = loaded.data;
+    latestSource = loaded.source;
+    populateFilters(latestData.investigations || []);
+    render();
+    renderUpdatedStatus();
+  } catch (error) {
+    latestSource = "auth-error";
+    renderUpdatedStatus();
+    content.innerHTML = `<div class="empty">Access failed. Check that the API is running and the demo password is correct.</div>`;
+  }
+}
+
+async function authenticateAndLoad() {
+  accessToken = "";
+  tokenRole = "";
+  await load();
+}
+
+async function authenticateRole(role) {
+  const response = await fetch(`${API_BASE}/api/auth/demo-login`, {
+    method: "POST",
+    cache: "no-store",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      role,
+      password: document.getElementById("password").value
+    })
+  });
+  if (!response.ok) throw new Error(`Demo login returned ${response.status}`);
+  const payload = await response.json();
+  accessToken = payload.access_token || "";
+  tokenRole = payload.role || "";
 }
 
 async function loadDashboardSnapshot() {
   try {
     const timestamp = Date.now();
+    const authHeaders = { Authorization: `Bearer ${accessToken}` };
     const [snapshotResponse, roleResponse] = await Promise.all([
       fetch(`${API_BASE}/api/dashboard?ts=${timestamp}`, { cache: "no-store" }),
-      fetch(`${API_BASE}/api/dashboard/${activeRole}?ts=${timestamp}`, { cache: "no-store" })
+      fetch(`${API_BASE}/api/dashboard/${activeRole}?ts=${timestamp}`, { cache: "no-store", headers: authHeaders })
     ]);
     if (!snapshotResponse.ok) throw new Error(`API snapshot returned ${snapshotResponse.status}`);
+    if ([401, 403].includes(roleResponse.status)) {
+      throw new Error(`AUTH_BLOCKED:${roleResponse.status}`);
+    }
     if (!roleResponse.ok) throw new Error(`API role view returned ${roleResponse.status}`);
     const snapshot = await snapshotResponse.json();
     const roleView = await roleResponse.json();
     return { data: mergeRoleView(snapshot, roleView), source: "role-api" };
   } catch (error) {
+    if (String(error.message || "").startsWith("AUTH_BLOCKED:")) {
+      throw error;
+    }
     const response = await fetch(`/dashboard/data.json?ts=${Date.now()}`, { cache: "no-store" });
     if (!response.ok) throw new Error(`Fallback snapshot returned ${response.status}`);
     return { data: await response.json(), source: "fallback" };
@@ -108,6 +148,7 @@ function renderUpdatedStatus() {
     "role-api": "Role API online",
     api: "API online",
     fallback: "API offline fallback",
+    "auth-error": "Access error",
     waiting: "Waiting for data"
   };
   const sourceClass = ["api", "role-api"].includes(latestSource) ? "online" : latestSource === "fallback" ? "fallback" : "waiting";

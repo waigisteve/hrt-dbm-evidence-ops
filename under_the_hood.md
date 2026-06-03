@@ -125,11 +125,13 @@ Files:
 
 - `api/server.py`: local REST-style JSON API.
 - `api/openapi.py`: OpenAPI 3.0 contract.
+- `auth_rbac_implementation.md`: demo token/RBAC model and production identity-provider recommendation.
 
 Implemented endpoints:
 
 ```text
 GET /api/health
+POST /api/auth/demo-login
 GET /api/dashboard
 GET /api/dashboard/{role}
 GET /api/anomalies
@@ -138,7 +140,7 @@ GET /api/openapi.json
 GET /api/docs
 ```
 
-The dashboard header shows `Role API online` when role-specific API reads are working, and `API offline fallback` when the browser has fallen back to the static snapshot.
+The dashboard header shows `Role API online` when role-specific API reads are working, and `API offline fallback` when the browser has fallen back to the static snapshot. The role endpoint checks a local signed demo token before returning data.
 
 ## Continuous Intake Simulation
 

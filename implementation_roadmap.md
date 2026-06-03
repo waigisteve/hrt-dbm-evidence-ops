@@ -105,8 +105,9 @@ gantt
     Move dashboard tabs to role-specific API reads        :done, p1f, after p1e, 3d
 
     section Phase 2 Auth
+    Add local demo token and RBAC proof of concept        :done, p2demo, after p1f, 2d
     Select identity provider and role claims              :p2a, after p1a, 3d
-    Implement OIDC/JWT validation                         :p2b, after p1b, 5d
+    Implement OIDC/JWT validation                         :p2b, after p2demo, 5d
     Add server-side RBAC for stakeholder routes           :p2c, after p2b, 5d
     Add PostgreSQL RLS proof of concept                   :p2d, after p2c, 5d
 
@@ -146,7 +147,7 @@ gantt
 |---|---|---|---|
 | 0 | Baseline freeze | Current HRT repo | Stable demo, acceptance criteria, risk register |
 | 1 | API service | Baseline freeze | Implemented local REST API, OpenAPI contract, dashboard/anomaly/notification endpoints |
-| 2 | JWT and RBAC | API service skeleton | OIDC/JWT validation, role claims, protected routes |
+| 2 | JWT and RBAC | API service skeleton | Local demo token/RBAC implemented; production OIDC/JWT pending |
 | 3 | API gateway/proxy | JWT direction | TLS, routing, rate limits, logs, request limits |
 | 4 | Webhook scalability | API service skeleton | Notification event table, queue, worker, retries |
 | 5 | SPOF reduction | Baseline freeze | Backups, restore tests, HA plan, media storage plan |
@@ -209,7 +210,7 @@ Exit criteria:
 - API responses are role-shaped. Done locally.
 - Dashboard can read from API instead of directly from `dashboard/data.json`. Done with static JSON fallback.
 - Dashboard role switches call `/api/dashboard/{role}`. Done with shared full-snapshot context for demo filters.
-- API responses are authorized server-side. Still pending.
+- API responses are authorized server-side. Done as local demo token/RBAC; production OIDC/JWT still pending.
 
 ### Phase 2: JWT and RBAC
 
@@ -217,7 +218,14 @@ Goal:
 
 - Replace simulated login with real authentication.
 
-Lowest-friction implementation:
+Implemented local proof of concept:
+
+- `POST /api/auth/demo-login` issues a signed local demo role token.
+- `GET /api/dashboard/{role}` requires `Authorization: Bearer <token>`.
+- Wrong-role access returns `403`.
+- Missing or invalid tokens return `401`.
+
+Lowest-friction production implementation:
 
 - Use a known OIDC provider rather than building auth directly.
 - Validate JWTs server-side in the API.
@@ -397,7 +405,8 @@ Sprint 1 scope:
 - Add `GET /api/anomalies`. Done.
 - Add OpenAPI documentation. Done.
 - Keep the current dashboard working. Done.
-- Next: add JWT/RBAC proof of concept so `/api/dashboard/{role}` rejects unauthenticated or wrong-role access.
+- Add local JWT/RBAC-style proof of concept so `/api/dashboard/{role}` rejects unauthenticated or wrong-role access. Done.
+- Next: replace local demo token with production OIDC/JWT validation.
 
 Why this first:
 
