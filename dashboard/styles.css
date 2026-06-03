@@ -172,7 +172,42 @@ canvas {
   border-bottom: 1px solid var(--line);
 }
 
-#updated { color: var(--muted); font-size: 13px; white-space: nowrap; }
+#updated {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.source-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 3px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.source-badge.online {
+  color: var(--ok);
+  border-color: rgba(22, 114, 74, 0.32);
+  background: rgba(22, 114, 74, 0.08);
+}
+
+.source-badge.fallback {
+  color: var(--warn);
+  border-color: rgba(183, 110, 0, 0.32);
+  background: rgba(183, 110, 0, 0.08);
+}
+
+.source-badge.waiting {
+  color: var(--muted);
+  background: #f8fafc;
+}
 
 table {
   width: 100%;

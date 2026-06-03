@@ -30,6 +30,7 @@ File:
 ```text
 api/server.py
 api/openapi.py
+dashboard/app.js
 ```
 
 Endpoints:
@@ -43,6 +44,12 @@ Endpoints:
 | `GET /api/notifications` | Returns notification delivery status |
 | `GET /api/openapi.json` | Returns the OpenAPI 3.0 contract |
 | `GET /api/docs` | Returns a simple browser-readable API documentation page |
+
+Dashboard integration:
+
+- `dashboard/app.js` now prefers `GET http://127.0.0.1:8770/api/dashboard`.
+- If the API is offline, it falls back to `/dashboard/data.json`.
+- The dashboard header shows `API online` or `API offline fallback`.
 
 ## How To Run
 
@@ -88,12 +95,10 @@ Those are the next steps.
 
 ## Next Baby Step
 
-Update `dashboard/app.js` so it fetches from:
+Move from full-snapshot API reads to role-specific API reads:
 
 ```text
 /api/dashboard/{role}
 ```
 
-instead of reading the full `dashboard/data.json` directly.
-
-That creates a clean path to add JWT and server-side role filtering.
+That creates a cleaner path to JWT and server-side role filtering because each stakeholder tab can request only the read model it is allowed to see.

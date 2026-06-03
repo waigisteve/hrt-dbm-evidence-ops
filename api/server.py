@@ -118,6 +118,8 @@ class ApiHandler(BaseHTTPRequestHandler):
                 "kpis": snapshot.get("kpis", {}),
                 "data": snapshot.get(role, []),
                 "charts": snapshot.get("charts", {}),
+                "ai_recommendations": snapshot.get("ai_recommendations", {}),
+                "notifications": snapshot.get("notifications", {}),
             }
         )
 

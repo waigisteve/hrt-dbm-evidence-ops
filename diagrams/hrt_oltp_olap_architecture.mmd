@@ -64,17 +64,17 @@ flowchart LR
     Snapshot --> ApiServer
     ApiServer --> ApiContract
     ApiServer --> ApiDocs
-    Snapshot -.-> Lead
-    Snapshot -.-> Ops
-    Snapshot -.-> Law
-    Snapshot -.-> Partner
-    Snapshot -.-> DP
-    Snapshot -.-> AI
-    Snapshot -.-> Mon
-    ApiServer -.-> Lead
-    ApiServer -.-> Ops
-    ApiServer -.-> Law
-    ApiServer -.-> Partner
-    ApiServer -.-> DP
-    ApiServer -.-> AI
-    ApiServer -.-> Mon
+    ApiServer --> Lead
+    ApiServer --> Ops
+    ApiServer --> Law
+    ApiServer --> Partner
+    ApiServer --> DP
+    ApiServer --> AI
+    ApiServer --> Mon
+    Snapshot -. fallback .-> Lead
+    Snapshot -. fallback .-> Ops
+    Snapshot -. fallback .-> Law
+    Snapshot -. fallback .-> Partner
+    Snapshot -. fallback .-> DP
+    Snapshot -. fallback .-> AI
+    Snapshot -. fallback .-> Mon

@@ -9,6 +9,7 @@ const roleButtons = Array.from(document.querySelectorAll(".role-button"));
 const supportRegion = document.getElementById("support-region");
 const visualGrid = document.getElementById("visual-grid");
 const filtersRegion = document.getElementById("filters");
+const API_BASE = "http://127.0.0.1:8770";
 
 const filters = {
   search: document.getElementById("search"),
@@ -33,6 +34,7 @@ const notes = {
 
 let activeRole = "leadership";
 let latestData = null;
+let latestSource = "waiting";
 
 loginButton.addEventListener("click", () => {
   activeRole = roleSelect.value;
@@ -60,11 +62,38 @@ Object.values(filters).forEach(filter => {
 });
 
 async function load() {
-  const response = await fetch(`/dashboard/data.json?ts=${Date.now()}`);
-  latestData = await response.json();
+  const loaded = await loadDashboardSnapshot();
+  latestData = loaded.data;
+  latestSource = loaded.source;
   populateFilters(latestData.investigations || []);
   render();
-  updated.textContent = `Updated ${new Date(latestData.generated_at).toLocaleString()}`;
+  renderUpdatedStatus();
+}
+
+async function loadDashboardSnapshot() {
+  try {
+    const response = await fetch(`${API_BASE}/api/dashboard?ts=${Date.now()}`, { cache: "no-store" });
+    if (!response.ok) throw new Error(`API returned ${response.status}`);
+    return { data: await response.json(), source: "api" };
+  } catch (error) {
+    const response = await fetch(`/dashboard/data.json?ts=${Date.now()}`, { cache: "no-store" });
+    if (!response.ok) throw new Error(`Fallback snapshot returned ${response.status}`);
+    return { data: await response.json(), source: "fallback" };
+  }
+}
+
+function renderUpdatedStatus() {
+  const generatedAt = latestData?.generated_at ? new Date(latestData.generated_at).toLocaleString() : "unknown";
+  const sourceLabels = {
+    api: "API online",
+    fallback: "API offline fallback",
+    waiting: "Waiting for data"
+  };
+  const sourceClass = latestSource === "api" ? "online" : latestSource === "fallback" ? "fallback" : "waiting";
+  updated.innerHTML = `
+    <span class="source-badge ${sourceClass}">${sourceLabels[latestSource] || "Unknown source"}</span>
+    <span>Updated ${generatedAt}</span>
+  `;
 }
 
 function render() {

@@ -22,7 +22,7 @@
         <mxCell id="openapi" value="OpenAPI Contract and API Docs&#xa;api/openapi.py&#xa;/api/openapi.json, /api/docs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0f9ff;strokeColor=#0b6e99;" vertex="1" parent="1">
           <mxGeometry x="1110" y="520" width="300" height="120" as="geometry"/>
         </mxCell>
-        <mxCell id="dash" value="Stakeholder Dashboards&#xa;Leadership, Investigations, Legal, CSO Partners, Data Protection, AI Review, Monitoring&#xa;Current local demo still reads dashboard/data.json directly; next step is API fetch." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fdecec;strokeColor=#b42318;" vertex="1" parent="1">
+        <mxCell id="dash" value="Stakeholder Dashboards&#xa;Leadership, Investigations, Legal, CSO Partners, Data Protection, AI Review, Monitoring&#xa;Dashboard now prefers the REST API and falls back to dashboard/data.json if the API is offline." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fdecec;strokeColor=#b42318;" vertex="1" parent="1">
           <mxGeometry x="1110" y="700" width="300" height="170" as="geometry"/>
         </mxCell>
         <mxCell id="ai" value="Responsible AI Controls&#xa;HITL review, no external SaaS for restricted media, DPIA triggers, audit trail" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3e8ff;strokeColor=#6f42c1;" vertex="1" parent="1">
@@ -49,7 +49,7 @@
         <mxCell id="e5b" edge="1" parent="1" source="api" target="openapi" style="endArrow=block;html=1;rounded=0;">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
-        <mxCell id="e5c" edge="1" parent="1" source="api" target="dash" style="endArrow=block;html=1;rounded=0;dashed=1;">
+        <mxCell id="e5c" edge="1" parent="1" source="api" target="dash" style="endArrow=block;html=1;rounded=0;">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
         <mxCell id="e5d" edge="1" parent="1" source="olap" target="dash" style="endArrow=block;html=1;rounded=0;dashed=1;">

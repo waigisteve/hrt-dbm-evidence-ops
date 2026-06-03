@@ -101,7 +101,8 @@ gantt
     Build backend API service skeleton                    :done, p1b, after p1a, 5d
     Wrap dashboard read models as API endpoints           :done, p1c, after p1b, 5d
     Add health endpoint and API docs                      :done, p1d, after p1b, 3d
-    Move dashboard browser fetches to API                 :p1e, after p1c, 3d
+    Move dashboard browser fetches to API                 :done, p1e, after p1c, 3d
+    Move dashboard tabs to role-specific API reads        :p1f, after p1e, 3d
 
     section Phase 2 Auth
     Select identity provider and role claims              :p2a, after p1a, 3d
@@ -206,7 +207,7 @@ Exit criteria:
 
 - Health endpoint confirms service readiness. Done locally.
 - API responses are role-shaped. Done locally.
-- Dashboard can read from API instead of directly from `dashboard/data.json`. Still pending.
+- Dashboard can read from API instead of directly from `dashboard/data.json`. Done with static JSON fallback.
 - API responses are authorized server-side. Still pending.
 
 ### Phase 2: JWT and RBAC
@@ -395,7 +396,7 @@ Sprint 1 scope:
 - Add `GET /api/anomalies`. Done.
 - Add OpenAPI documentation. Done.
 - Keep the current dashboard working. Done.
-- Next: update `dashboard/app.js` to read role views from the API instead of loading the full static JSON directly.
+- Next: update `dashboard/app.js` to use role-specific `/api/dashboard/{role}` responses instead of the full API snapshot.
 
 Why this first:
 
