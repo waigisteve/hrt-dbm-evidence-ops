@@ -30,6 +30,7 @@ flowchart LR
 
     subgraph API[REST API Boundary]
         ApiServer["api/server.py"]
+        RoleApi["/api/dashboard/{role}"]
         ApiContract["api/openapi.py"]
         ApiDocs["/api/docs + /api/openapi.json"]
     end
@@ -62,15 +63,16 @@ flowchart LR
     ETL --> Duck
     ETL --> Snapshot
     Snapshot --> ApiServer
+    ApiServer --> RoleApi
     ApiServer --> ApiContract
     ApiServer --> ApiDocs
-    ApiServer --> Lead
-    ApiServer --> Ops
-    ApiServer --> Law
-    ApiServer --> Partner
-    ApiServer --> DP
-    ApiServer --> AI
-    ApiServer --> Mon
+    RoleApi --> Lead
+    RoleApi --> Ops
+    RoleApi --> Law
+    RoleApi --> Partner
+    RoleApi --> DP
+    RoleApi --> AI
+    RoleApi --> Mon
     Snapshot -. fallback .-> Lead
     Snapshot -. fallback .-> Ops
     Snapshot -. fallback .-> Law

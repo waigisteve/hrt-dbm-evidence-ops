@@ -47,9 +47,10 @@ Endpoints:
 
 Dashboard integration:
 
-- `dashboard/app.js` now prefers `GET http://127.0.0.1:8770/api/dashboard`.
+- `dashboard/app.js` now prefers `GET http://127.0.0.1:8770/api/dashboard/{role}` for the active stakeholder tab.
+- It also reads `GET http://127.0.0.1:8770/api/dashboard` as shared demo context for filters and cross-tab charts.
 - If the API is offline, it falls back to `/dashboard/data.json`.
-- The dashboard header shows `API online` or `API offline fallback`.
+- The dashboard header shows `Role API online` or `API offline fallback`.
 
 ## How To Run
 
@@ -95,10 +96,10 @@ Those are the next steps.
 
 ## Next Baby Step
 
-Move from full-snapshot API reads to role-specific API reads:
+Add lightweight JWT/RBAC proof of concept around role-specific reads:
 
 ```text
-/api/dashboard/{role}
+GET /api/dashboard/{role}
 ```
 
-That creates a cleaner path to JWT and server-side role filtering because each stakeholder tab can request only the read model it is allowed to see.
+That will make each stakeholder tab request only the read model it is allowed to see, with the backend rejecting wrong-role access.

@@ -93,7 +93,8 @@ flowchart LR
     Snapshot --> Api["api/server.py REST API"]
     Api --> OpenAPI["api/openapi.py OpenAPI contract"]
     Api --> ApiDocs["/api/docs + /api/openapi.json"]
-    Api --> Dashboard["Stakeholder dashboard"]
+    Api --> RoleApi["/api/dashboard/{role}"]
+    RoleApi --> Dashboard["Stakeholder dashboard"]
     Snapshot -. fallback if API offline .-> Dashboard
 
     Dashboard --> Leadership[Leadership strategic view]
@@ -105,7 +106,7 @@ flowchart LR
     Dashboard --> Media[NoSQL media gallery]
 ```
 
-Current local behavior: the browser dashboard prefers the REST API at `http://127.0.0.1:8770/api/dashboard` and falls back to `dashboard/data.json` if the API is offline. The next implementation step is to move `dashboard/app.js` to fetch role-shaped API responses from `/api/dashboard/{role}`.
+Current local behavior: the browser dashboard prefers role-shaped REST API responses from `http://127.0.0.1:8770/api/dashboard/{role}` and falls back to `dashboard/data.json` if the API is offline. It still reads the full API snapshot as shared demo context for filters and cross-tab charts until JWT/RBAC is added.
 
 ## Schema Overview
 

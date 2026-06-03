@@ -6,7 +6,7 @@ This document shows how selected production architecture topics are represented 
 
 | Topic | Current project status | Where to see it | Production gap |
 |---|---|---|---|
-| APIs | Minimal REST-style API implemented; dashboard now prefers API-backed snapshot reads with static JSON fallback | `api/server.py`, `api/openapi.py`, `dashboard/app.js`, `api_implementation_start.md` | Add authenticated intake APIs, refresh control, server-side authorization, request validation, and production framework/runtime |
+| APIs | Minimal REST-style API implemented; dashboard now uses role-specific API reads with static JSON fallback | `api/server.py`, `api/openapi.py`, `dashboard/app.js`, `api_implementation_start.md` | Add authenticated intake APIs, refresh control, server-side authorization, request validation, and production framework/runtime |
 | API gateway | Not implemented | None | Add gateway/reverse proxy for routing, TLS, rate limiting, authentication, request logging, and WAF controls |
 | JWT | Not implemented | `dashboard/index.html`, `dashboard/app.js` | Replace simulated login with OIDC/JWT validation and server-side authorization |
 | Webhooks | Implemented outbound only | `scripts/notifications.py` | Add retry queues, idempotency keys, signing, backoff, and delivery audit table |
@@ -21,7 +21,8 @@ Current state:
 
 - The project now exposes a minimal local REST-style JSON API.
 - The dashboard is served by `dashboard/server.py`, a Python static file server.
-- The browser now tries `GET http://127.0.0.1:8770/api/dashboard` first.
+- The browser now tries `GET http://127.0.0.1:8770/api/dashboard/{role}` for the active stakeholder tab.
+- It also reads `GET http://127.0.0.1:8770/api/dashboard` as shared demo context for filters and cross-tab charts.
 - If the API is offline, the browser falls back to `dashboard/data.json`.
 - Data refresh is script-driven through `scripts/refresh_olap.py`.
 - The API wraps the generated dashboard snapshot rather than querying PostgreSQL directly.
@@ -70,7 +71,7 @@ Production recommendation:
 - Keep dashboard APIs read-only and filtered by stakeholder role.
 - Move from local `http.server` to a production application runtime when the service becomes more than a demo boundary.
 - Keep the OpenAPI contract current as endpoint behavior changes.
-- Move the dashboard from full-snapshot API reads to role-specific API reads so JWT/RBAC can become meaningful.
+- Add JWT/RBAC so role-specific reads are enforced by the backend rather than trusted by the browser.
 
 ## API Gateway
 

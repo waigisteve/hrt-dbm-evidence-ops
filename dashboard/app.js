@@ -39,7 +39,7 @@ let latestSource = "waiting";
 loginButton.addEventListener("click", () => {
   activeRole = roleSelect.value;
   syncRoleNav();
-  render();
+  load();
 });
 
 roleButtons.forEach(button => {
@@ -47,7 +47,7 @@ roleButtons.forEach(button => {
     activeRole = button.dataset.role;
     roleSelect.value = activeRole;
     syncRoleNav();
-    render();
+    load();
   });
 });
 
@@ -72,9 +72,16 @@ async function load() {
 
 async function loadDashboardSnapshot() {
   try {
-    const response = await fetch(`${API_BASE}/api/dashboard?ts=${Date.now()}`, { cache: "no-store" });
-    if (!response.ok) throw new Error(`API returned ${response.status}`);
-    return { data: await response.json(), source: "api" };
+    const timestamp = Date.now();
+    const [snapshotResponse, roleResponse] = await Promise.all([
+      fetch(`${API_BASE}/api/dashboard?ts=${timestamp}`, { cache: "no-store" }),
+      fetch(`${API_BASE}/api/dashboard/${activeRole}?ts=${timestamp}`, { cache: "no-store" })
+    ]);
+    if (!snapshotResponse.ok) throw new Error(`API snapshot returned ${snapshotResponse.status}`);
+    if (!roleResponse.ok) throw new Error(`API role view returned ${roleResponse.status}`);
+    const snapshot = await snapshotResponse.json();
+    const roleView = await roleResponse.json();
+    return { data: mergeRoleView(snapshot, roleView), source: "role-api" };
   } catch (error) {
     const response = await fetch(`/dashboard/data.json?ts=${Date.now()}`, { cache: "no-store" });
     if (!response.ok) throw new Error(`Fallback snapshot returned ${response.status}`);
@@ -82,14 +89,28 @@ async function loadDashboardSnapshot() {
   }
 }
 
+function mergeRoleView(snapshot, roleView) {
+  if (!roleView?.role || !Array.isArray(roleView.data)) return snapshot;
+  return {
+    ...snapshot,
+    generated_at: roleView.generated_at || snapshot.generated_at,
+    kpis: roleView.kpis || snapshot.kpis,
+    charts: roleView.charts || snapshot.charts,
+    ai_recommendations: roleView.ai_recommendations || snapshot.ai_recommendations,
+    notifications: roleView.notifications || snapshot.notifications,
+    [roleView.role]: roleView.data
+  };
+}
+
 function renderUpdatedStatus() {
   const generatedAt = latestData?.generated_at ? new Date(latestData.generated_at).toLocaleString() : "unknown";
   const sourceLabels = {
+    "role-api": "Role API online",
     api: "API online",
     fallback: "API offline fallback",
     waiting: "Waiting for data"
   };
-  const sourceClass = latestSource === "api" ? "online" : latestSource === "fallback" ? "fallback" : "waiting";
+  const sourceClass = ["api", "role-api"].includes(latestSource) ? "online" : latestSource === "fallback" ? "fallback" : "waiting";
   updated.innerHTML = `
     <span class="source-badge ${sourceClass}">${sourceLabels[latestSource] || "Unknown source"}</span>
     <span>Updated ${generatedAt}</span>
