@@ -8,7 +8,8 @@ The design deliberately separates operational evidence handling from reporting:
 
 - PostgreSQL is the OLTP system for controlled evidence intake and updates.
 - DuckDB is the OLAP system for dashboard/reporting snapshots.
-- The dashboard reads a generated JSON snapshot, not the live operational database.
+- The REST API reads the generated dashboard snapshot, not the live operational database.
+- The browser dashboard prefers role-specific API reads and falls back to the generated JSON snapshot if the API is offline.
 
 This separation is important because stakeholder reporting should not interfere with evidence integrity, custody logging, or operational database performance.
 
@@ -26,7 +27,14 @@ DuckDB OLAP: olap/hrt_olap.duckdb
         |
         | dashboard/data.json
         v
-Browser dashboard: http://127.0.0.1:8765
+REST API: http://127.0.0.1:8770/api/dashboard/{role}
+        |
+        v
+Browser dashboard: http://127.0.0.1:8766
+
+Fallback path if API is offline:
+
+dashboard/data.json -> Browser dashboard
 ```
 
 For full OLTP/OLAP architecture, business workflow, schema diagrams, and diagrams.net assets, see `architecture_and_business_case.md` and the `diagrams/` folder.
@@ -76,17 +84,27 @@ This layer is disposable. It can be rebuilt from PostgreSQL.
 
 ## Dashboard Layer
 
-The dashboard is a lightweight browser interface served by Python's built-in HTTP server.
+The dashboard is a lightweight browser interface served by Python's built-in HTTP server. It now uses the REST API as the primary read path.
 
 Files:
 
 - `dashboard/server.py`: local static file server.
 - `dashboard/index.html`: dashboard shell.
-- `dashboard/app.js`: stakeholder view switching and live refresh.
+- `dashboard/app.js`: stakeholder view switching, role-specific API reads, static JSON fallback, and live refresh.
 - `dashboard/styles.css`: visual layout.
 - `dashboard/data.json`: generated reporting snapshot.
 
-The dashboard refreshes every 5 seconds by re-reading `dashboard/data.json`.
+The dashboard refreshes every 5 seconds. It first calls:
+
+```text
+GET http://127.0.0.1:8770/api/dashboard/{role}
+```
+
+It also reads the full API snapshot as shared demo context for filters and cross-tab charts. If the API is offline, it falls back to:
+
+```text
+/dashboard/data.json
+```
 
 The access selector simulates stakeholder-specific access views:
 
@@ -98,6 +116,29 @@ The access selector simulates stakeholder-specific access views:
 - AI Review: candidate AI tasks and required controls.
 
 This is a demo access model. In a production system, it would be replaced by real authentication, authorisation, MFA, audit logging, and server-side access enforcement.
+
+## REST API Layer
+
+The local API creates the service boundary needed for JWT, RBAC, API gateway routing, and future backend enforcement.
+
+Files:
+
+- `api/server.py`: local REST-style JSON API.
+- `api/openapi.py`: OpenAPI 3.0 contract.
+
+Implemented endpoints:
+
+```text
+GET /api/health
+GET /api/dashboard
+GET /api/dashboard/{role}
+GET /api/anomalies
+GET /api/notifications
+GET /api/openapi.json
+GET /api/docs
+```
+
+The dashboard header shows `Role API online` when role-specific API reads are working, and `API offline fallback` when the browser has fallen back to the static snapshot.
 
 ## Continuous Intake Simulation
 
@@ -132,7 +173,7 @@ It:
 2. Pulls an evidence readiness dataset.
 3. Rebuilds `olap/hrt_olap.duckdb`.
 4. Writes `dashboard/data.json`.
-5. Feeds the browser dashboard.
+5. Feeds the REST API and browser fallback path.
 
 This is intentionally simple and transparent for interview demonstration. In production, this could become a scheduled ETL job, CDC pipeline, materialised view process, or managed warehouse ingestion.
 

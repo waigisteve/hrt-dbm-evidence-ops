@@ -14,14 +14,15 @@ DuckDB OLAP
   - Keeps analytics separate from operational evidence intake
 
 Dashboard
-  - Reads dashboard/data.json generated from OLAP refresh
+  - Prefers role-specific REST API reads from /api/dashboard/{role}
+  - Falls back to dashboard/data.json generated from OLAP refresh if the API is offline
   - Simulates stakeholder login views
   - Refreshes every 5 seconds
 ```
 
-## Start the Dashboard
+## Start the API and Dashboard
 
-Terminal 1.
+Terminal 1: API.
 
 Use the same root-capable WSL terminal where PostgreSQL is running. If needed:
 
@@ -36,6 +37,19 @@ cd "/mnt/c/Users/Hp/Desktop/dba/2026/HRT_DBM_Prep_Pack_clean"
 python3 scripts/refresh_olap.py
 python3 scripts/sync_media_catalog.py
 python3 scripts/refresh_olap.py
+HRT_API_PORT=8770 python3 api/server.py
+```
+
+API docs:
+
+```text
+http://127.0.0.1:8770/api/docs
+```
+
+Terminal 2: dashboard.
+
+```bash
+cd "/mnt/c/Users/Hp/Desktop/dba/2026/HRT_DBM_Prep_Pack_clean"
 HRT_DASHBOARD_PORT=8766 python3 dashboard/server.py
 ```
 
@@ -68,9 +82,14 @@ The dashboard has demo stakeholder access tabs:
 
 The password box is present to simulate separate access, but this is not production authentication.
 
+Expected status:
+
+- `Role API online`: dashboard is using `/api/dashboard/{role}`.
+- `API offline fallback`: dashboard is using `dashboard/data.json` because the API is not reachable.
+
 ## Run the One-Hour Continuous Simulation
 
-Terminal 2.
+Terminal 3.
 
 Use another root-capable WSL terminal:
 
