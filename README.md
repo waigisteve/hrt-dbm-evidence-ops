@@ -56,7 +56,10 @@ psql -d hrt_prep -f sql/analysis_queries.sql
 10. Use `source_references.md`.
    - Ground your answers in the HRT role model and recognised evidence-management standards.
 
-11. Follow `practice_schedule.md`.
+11. Use `architecture_gap_assessment.md`.
+   - Explain what is implemented, simulated, or missing for APIs, API gateways, JWT, webhook scalability, proxy, SPOF, and CAP theorem.
+
+12. Follow `practice_schedule.md`.
    - The schedule gives a 3-week route from research to final mock interview.
 
 ## Positioning Statement
