@@ -59,7 +59,10 @@ psql -d hrt_prep -f sql/analysis_queries.sql
 11. Use `architecture_gap_assessment.md`.
    - Explain what is implemented, simulated, or missing for APIs, API gateways, JWT, webhook scalability, proxy, SPOF, and CAP theorem.
 
-12. Follow `practice_schedule.md`.
+12. Use `implementation_roadmap.md`.
+   - Walk through the least-headwind implementation path, dependency map, Gantt plan, decision gates, and first sprint.
+
+13. Follow `practice_schedule.md`.
    - The schedule gives a 3-week route from research to final mock interview.
 
 ## Positioning Statement
