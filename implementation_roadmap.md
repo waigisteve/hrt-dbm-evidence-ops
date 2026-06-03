@@ -97,10 +97,11 @@ gantt
     Define production acceptance criteria                 :p0c, after p0b, 2d
 
     section Phase 1 APIs
-    Design API contract and OpenAPI spec                  :p1a, after p0c, 4d
-    Build backend API service skeleton                    :p1b, after p1a, 5d
-    Wrap dashboard read models as API endpoints           :p1c, after p1b, 5d
-    Add health, readiness, and version endpoints          :p1d, after p1b, 3d
+    Design API contract and OpenAPI spec                  :done, p1a, after p0c, 4d
+    Build backend API service skeleton                    :done, p1b, after p1a, 5d
+    Wrap dashboard read models as API endpoints           :done, p1c, after p1b, 5d
+    Add health endpoint and API docs                      :done, p1d, after p1b, 3d
+    Move dashboard browser fetches to API                 :p1e, after p1c, 3d
 
     section Phase 2 Auth
     Select identity provider and role claims              :p2a, after p1a, 3d
@@ -143,7 +144,7 @@ gantt
 | Phase | Work package | Depends on | Output |
 |---|---|---|---|
 | 0 | Baseline freeze | Current HRT repo | Stable demo, acceptance criteria, risk register |
-| 1 | API service | Baseline freeze | API contract, backend service, health endpoints |
+| 1 | API service | Baseline freeze | Implemented local REST API, OpenAPI contract, dashboard/anomaly/notification endpoints |
 | 2 | JWT and RBAC | API service skeleton | OIDC/JWT validation, role claims, protected routes |
 | 3 | API gateway/proxy | JWT direction | TLS, routing, rate limits, logs, request limits |
 | 4 | Webhook scalability | API service skeleton | Notification event table, queue, worker, retries |
@@ -192,18 +193,21 @@ Suggested endpoints:
 
 | Endpoint | Purpose |
 |---|---|
-| `GET /api/health` | Service health |
-| `GET /api/dashboard/{role}` | Stakeholder dashboard data |
-| `GET /api/anomalies` | AI anomaly list |
-| `GET /api/notifications` | Notification delivery status |
+| `GET /api/health` | Service health. Implemented locally. |
+| `GET /api/dashboard/{role}` | Stakeholder dashboard data. Implemented locally from `dashboard/data.json`. |
+| `GET /api/anomalies` | AI anomaly list. Implemented locally. |
+| `GET /api/notifications` | Notification delivery status. Implemented locally. |
+| `GET /api/openapi.json` | OpenAPI 3.0 contract. Implemented locally. |
+| `GET /api/docs` | Browser-readable API docs. Implemented locally. |
 | `POST /api/refresh` | Trigger reporting refresh in controlled environments |
 | `POST /api/intake/media` | Future intake endpoint |
 
 Exit criteria:
 
-- Dashboard can read from API instead of directly from `dashboard/data.json`.
-- Health endpoint confirms service readiness.
-- API responses are role-filtered.
+- Health endpoint confirms service readiness. Done locally.
+- API responses are role-shaped. Done locally.
+- Dashboard can read from API instead of directly from `dashboard/data.json`. Still pending.
+- API responses are authorized server-side. Still pending.
 
 ### Phase 2: JWT and RBAC
 
@@ -385,12 +389,13 @@ The first sprint should avoid broad infrastructure work. Focus on converting the
 
 Sprint 1 scope:
 
-- Build a minimal API service.
-- Add `GET /api/health`.
-- Add `GET /api/dashboard/{role}` from existing `dashboard/data.json`.
-- Add `GET /api/anomalies`.
-- Add OpenAPI documentation.
-- Keep the current dashboard working.
+- Build a minimal API service. Done.
+- Add `GET /api/health`. Done.
+- Add `GET /api/dashboard/{role}` from existing `dashboard/data.json`. Done.
+- Add `GET /api/anomalies`. Done.
+- Add OpenAPI documentation. Done.
+- Keep the current dashboard working. Done.
+- Next: update `dashboard/app.js` to read role views from the API instead of loading the full static JSON directly.
 
 Why this first:
 
@@ -435,4 +440,3 @@ Why this first:
 Use this framing:
 
 > The lowest-risk path is incremental hardening. I would not replace the working evidence model. I would first expose controlled APIs around the existing read models, then add OIDC/JWT and server-side RBAC, then place the services behind a gateway. In parallel, I would move notifications from synchronous webhooks to a queued worker with retries and auditability. Finally, I would reduce SPOFs through backups, object storage, health checks, and documented CAP tradeoffs for offline field collection versus evidentiary consistency.
-

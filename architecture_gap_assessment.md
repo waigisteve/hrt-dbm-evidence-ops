@@ -6,7 +6,7 @@ This document shows how selected production architecture topics are represented 
 
 | Topic | Current project status | Where to see it | Production gap |
 |---|---|---|---|
-| APIs | Not implemented as HTTP APIs | `scripts/refresh_olap.py`, `dashboard/server.py` | Replace script-only ETL and static JSON with service APIs for intake, dashboard reads, notifications, and health checks |
+| APIs | Minimal REST-style API implemented for dashboard reads, health, anomalies, notifications, and OpenAPI docs | `api/server.py`, `api/openapi.py`, `api_implementation_start.md` | Add authenticated intake APIs, refresh control, server-side authorization, request validation, and production framework/runtime |
 | API gateway | Not implemented | None | Add gateway/reverse proxy for routing, TLS, rate limiting, authentication, request logging, and WAF controls |
 | JWT | Not implemented | `dashboard/index.html`, `dashboard/app.js` | Replace simulated login with OIDC/JWT validation and server-side authorization |
 | Webhooks | Implemented outbound only | `scripts/notifications.py` | Add retry queues, idempotency keys, signing, backoff, and delivery audit table |
@@ -19,10 +19,12 @@ This document shows how selected production architecture topics are represented 
 
 Current state:
 
-- The project does not expose production REST or GraphQL APIs.
+- The project now exposes a minimal local REST-style JSON API.
 - The dashboard is served by `dashboard/server.py`, a Python static file server.
 - The browser reads `dashboard/data.json` directly in `dashboard/app.js`.
 - Data refresh is script-driven through `scripts/refresh_olap.py`.
+- The API wraps the generated dashboard snapshot rather than querying PostgreSQL directly.
+- The API includes a machine-readable OpenAPI 3.0 contract and a simple browser documentation page.
 
 Current flow:
 
@@ -32,6 +34,23 @@ PostgreSQL hrt_prep
   -> olap/hrt_olap.duckdb
   -> dashboard/data.json
   -> dashboard/app.js
+
+dashboard/data.json
+  -> api/server.py
+  -> REST endpoints and OpenAPI docs
+```
+
+Implemented local endpoints:
+
+```text
+GET /api
+GET /api/health
+GET /api/dashboard
+GET /api/dashboard/{role}
+GET /api/anomalies
+GET /api/notifications
+GET /api/openapi.json
+GET /api/docs
 ```
 
 Production recommendation:
@@ -45,6 +64,8 @@ Production recommendation:
   - `GET /api/health`
 - Keep raw evidence operations behind strict authentication and role-based authorization.
 - Keep dashboard APIs read-only and filtered by stakeholder role.
+- Move from local `http.server` to a production application runtime when the service becomes more than a demo boundary.
+- Keep the OpenAPI contract current as endpoint behavior changes.
 
 ## API Gateway
 
@@ -257,4 +278,3 @@ Production recommendation:
 Use this explanation:
 
 > This demo intentionally implements the evidence workflow rather than a full production platform. It has script-based ETL, a static dashboard read model, outbound Slack/email alerts, and simulated login. In production I would add APIs, an API gateway, OIDC/JWT authentication, server-side RBAC, queued webhook delivery, reverse proxy controls, high availability, and explicit CAP tradeoffs for field collection versus evidentiary integrity.
-
