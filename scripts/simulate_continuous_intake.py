@@ -19,15 +19,21 @@ and AI recommendation layer update as if live evidence had arrived.
 from __future__ import annotations
 
 import argparse
+import os
 import random
 import secrets
 import subprocess
+import sys
 import time
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
 
-PG_DB = "hrt_prep"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ROOT)
+
+from scripts.db import psql_command  # noqa: E402
+
 MEDIA_TYPES = ["video", "photo", "document"]
 INCIDENT_TYPES = ["political violence", "checkpoint abuse", "night operation", "arbitrary detention"]
 LOCALITIES = ["Kijani Market", "Mtoni Junction", "Riverline Bus Stage", "East Gate", "Old Depot"]
@@ -35,7 +41,7 @@ VERIFICATION_OUTCOMES = ["unverified", "partially_verified", "verified"]
 ACCESS_CLASSES = ["high", "restricted"]
 
 
-def run(command: list[str], input_text: str | None = None) -> str:
+def run(command: list[str], input_text: str | None = None, env: dict[str, str] | None = None) -> str:
     result = subprocess.run(
         command,
         input=input_text,
@@ -43,12 +49,14 @@ def run(command: list[str], input_text: str | None = None) -> str:
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         check=True,
+        env=env,
     )
     return result.stdout
 
 
 def psql(sql: str) -> None:
-    run(["sudo", "-u", "postgres", "psql", "-d", PG_DB, "-q"], sql)
+    base, env = psql_command("app")
+    run(base + ["-q", "-v", "ON_ERROR_STOP=1"], sql, env=env)
 
 
 def q(value: str) -> str:
@@ -134,10 +142,12 @@ VALUES (currval('media_files_media_id_seq'), currval('incidents_incident_id_seq'
                 ]
             )
 
-    psql("\n".join(statements))
-    run(["python3", "scripts/refresh_olap.py"])
-    run(["python3", "scripts/sync_media_catalog.py"])
-    run(["python3", "scripts/refresh_olap.py"])
+    psql("BEGIN;\n" + "\n".join(statements) + "\nCOMMIT;")
+    refresh = os.path.join(ROOT, "scripts", "refresh_olap.py")
+    sync = os.path.join(ROOT, "scripts", "sync_media_catalog.py")
+    run([sys.executable, refresh])
+    run([sys.executable, sync])
+    run([sys.executable, refresh])
     print(f"{datetime.now().isoformat(timespec='seconds')} inserted {incident_code} with {media_count} items.")
 
 

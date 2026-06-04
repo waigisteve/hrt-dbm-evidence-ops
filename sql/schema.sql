@@ -100,7 +100,8 @@ CREATE TABLE media_files (
     verification_status verification_status NOT NULL DEFAULT 'unverified',
     legal_status legal_review_status NOT NULL DEFAULT 'not_reviewed',
     metadata_json JSONB NOT NULL DEFAULT '{}'::jsonb,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE media_persons (
@@ -116,8 +117,8 @@ CREATE TABLE media_persons (
 
 CREATE TABLE verification_steps (
     verification_step_id BIGSERIAL PRIMARY KEY,
-    media_id BIGINT REFERENCES media_files (media_id) ON DELETE CASCADE,
-    incident_id BIGINT REFERENCES incidents (incident_id) ON DELETE CASCADE,
+    media_id BIGINT REFERENCES media_files (media_id) ON DELETE RESTRICT,
+    incident_id BIGINT REFERENCES incidents (incident_id) ON DELETE RESTRICT,
     step_type TEXT NOT NULL,
     method TEXT NOT NULL,
     result verification_status NOT NULL,
@@ -129,7 +130,7 @@ CREATE TABLE verification_steps (
 
 CREATE TABLE custody_events (
     custody_event_id BIGSERIAL PRIMARY KEY,
-    media_id BIGINT NOT NULL REFERENCES media_files (media_id) ON DELETE CASCADE,
+    media_id BIGINT NOT NULL REFERENCES media_files (media_id) ON DELETE RESTRICT,
     event_type custody_event_type NOT NULL,
     event_at TIMESTAMPTZ NOT NULL,
     actor_code TEXT NOT NULL,
@@ -144,7 +145,7 @@ CREATE TABLE custody_events (
 
 CREATE TABLE access_logs (
     access_log_id BIGSERIAL PRIMARY KEY,
-    media_id BIGINT REFERENCES media_files (media_id) ON DELETE CASCADE,
+    media_id BIGINT REFERENCES media_files (media_id) ON DELETE RESTRICT,
     user_code TEXT NOT NULL,
     action TEXT NOT NULL,
     purpose TEXT NOT NULL,
@@ -182,8 +183,8 @@ CREATE TABLE media_tags (
 
 CREATE TABLE legal_reviews (
     legal_review_id BIGSERIAL PRIMARY KEY,
-    media_id BIGINT REFERENCES media_files (media_id) ON DELETE CASCADE,
-    incident_id BIGINT REFERENCES incidents (incident_id) ON DELETE CASCADE,
+    media_id BIGINT REFERENCES media_files (media_id) ON DELETE RESTRICT,
+    incident_id BIGINT REFERENCES incidents (incident_id) ON DELETE RESTRICT,
     status legal_review_status NOT NULL,
     reviewer_code TEXT NOT NULL,
     reviewed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -202,3 +203,19 @@ CREATE INDEX idx_custody_media_event_at ON custody_events (media_id, event_at);
 CREATE INDEX idx_verification_media ON verification_steps (media_id, reviewed_at);
 CREATE INDEX idx_incidents_location_time ON incidents (location_id, occurred_at);
 CREATE INDEX idx_access_logs_media_time ON access_logs (media_id, accessed_at);
+CREATE INDEX idx_media_metadata_json ON media_files USING GIN (metadata_json);
+
+CREATE OR REPLACE FUNCTION set_updated_at() RETURNS trigger AS $$
+BEGIN
+    NEW.updated_at := now();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_incidents_updated_at
+    BEFORE UPDATE ON incidents
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_media_files_updated_at
+    BEFORE UPDATE ON media_files
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();

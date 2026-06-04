@@ -82,6 +82,14 @@ flowchart TB
 | Audit-style records | `access_logs`, `custody_events`, `exports`, `legal_reviews`, `verification_steps` | Makes actions traceable |
 | Metadata preservation | `media_files.metadata_json` | Stores extracted metadata without overwriting original evidence |
 | Pseudonymous persons | `persons`, `incident_persons`, `media_persons` | Supports analysis while avoiding direct identifying data exposure |
+| Append-only audit permissions | `custody_events`, `access_logs`, `verification_steps`, `legal_reviews` | Application role can insert/select history but not rewrite or erase it |
+| Restricted delete behavior | `ON DELETE RESTRICT` on custody, access, verification, and legal review records | Evidence with history cannot be cascade-erased |
+| Least-privilege roles | `sql/roles_and_security.sql` | Separates OLTP app writes, ETL reads, and partner reads |
+| Row-level security | `media_files` partner policy | Partner role cannot read restricted media |
+| Metadata JSONB index | `idx_media_metadata_json` | Supports scalable metadata checks and anomaly queries |
+| `updated_at` triggers | `incidents`, `media_files` | Maintains trustworthy last-modified timestamps |
+
+See `HARDENING.md` for the full security, reliability, and scalability control list.
 
 ## Workflow
 
@@ -147,4 +155,3 @@ flowchart LR
 ## Interview Statement
 
 > The schema enforces standards by making unsafe or weak evidence visible. A file is not simply stored and assumed usable; it must have metadata, custody, verification, legal review, access classification, and export controls. This protects sources and affected people while giving investigators and legal teams a defensible trail from raw media to findings.
-

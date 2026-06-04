@@ -11,6 +11,7 @@ import json
 import os
 import smtplib
 import ssl
+import sys
 from dataclasses import dataclass
 from email.message import EmailMessage
 from typing import Any
@@ -151,13 +152,15 @@ def deliver_event(event: dict[str, Any], config: NotificationConfig) -> list[dic
             send_slack(event, config)
             deliveries.append({"channel": "slack", "status": "sent", "detail": "Sent to Slack webhook."})
         except Exception as exc:
-            deliveries.append({"channel": "slack", "status": "failed", "detail": f"Slack send failed: {exc}"})
+            print(f"Slack send failed: {exc}", file=sys.stderr)
+            deliveries.append({"channel": "slack", "status": "failed", "detail": "Slack send failed (see server logs)."})
     if config.smtp_sender and config.smtp_password:
         try:
             send_email(event, config)
             deliveries.append({"channel": "email", "status": "sent", "detail": f"Sent to {event['recipient']} via SMTP."})
         except Exception as exc:
-            deliveries.append({"channel": "email", "status": "failed", "detail": f"Email send failed: {exc}"})
+            print(f"Email send failed: {exc}", file=sys.stderr)
+            deliveries.append({"channel": "email", "status": "failed", "detail": "Email send failed (see server logs)."})
     if not deliveries:
         deliveries.append({"channel": "none_configured", "status": "not_sent", "detail": "No Slack webhook or SMTP credentials configured."})
     return deliveries

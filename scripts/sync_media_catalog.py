@@ -6,6 +6,7 @@ from __future__ import annotations
 import hashlib
 import json
 import mimetypes
+import os
 import re
 from datetime import datetime, timezone
 from pathlib import Path
@@ -86,7 +87,13 @@ def synthetic_note(row: dict[str, Any]) -> str:
 
 
 def escape(value: str) -> str:
-    return value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    return (
+        value.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace('"', "&quot;")
+        .replace("'", "&#39;")
+    )
 
 
 def asset_for(row: dict[str, Any]) -> Path:
@@ -132,6 +139,17 @@ def scan_asset(path: Path) -> dict[str, Any]:
     }
 
 
+def load_existing_catalog() -> dict[str, dict[str, Any]]:
+    if not CATALOG.exists():
+        return {}
+    existing: dict[str, dict[str, Any]] = {}
+    for line in CATALOG.read_text(encoding="utf-8").splitlines():
+        if line.strip():
+            doc = json.loads(line)
+            existing[str(doc["media_id"])] = doc
+    return existing
+
+
 def main() -> None:
     if not DASHBOARD_JSON.exists():
         raise SystemExit(
@@ -141,11 +159,22 @@ def main() -> None:
     data = json.loads(DASHBOARD_JSON.read_text(encoding="utf-8"))
     rows = data.get("investigations", [])
     OBJECTS.mkdir(parents=True, exist_ok=True)
+    previous = load_existing_catalog()
 
     documents = []
+    reused = 0
     for row in rows:
-        path = create_asset(row)
-        scan = scan_asset(path)
+        path = asset_for(row)
+        prior = previous.get(str(row["media_id"]))
+        if path.exists() and prior and prior.get("bytes") == path.stat().st_size:
+            scan = {key: prior[key] for key in ("safe_status", "scan_reasons", "detected_mime", "sha256", "bytes")}
+            ingested_at = prior.get("ingested_at", datetime.now(timezone.utc).isoformat())
+            reused += 1
+        else:
+            if not path.exists():
+                create_asset(row)
+            scan = scan_asset(path)
+            ingested_at = datetime.now(timezone.utc).isoformat()
         documents.append(
             {
                 "document_id": f"media-{row['media_id']}",
@@ -156,13 +185,16 @@ def main() -> None:
                 "object_path": str(path.relative_to(ROOT)),
                 "preview_path": str(path.relative_to(ROOT)),
                 "source": "synthetic_safe_scaffold",
-                "ingested_at": datetime.now(timezone.utc).isoformat(),
+                "ingested_at": ingested_at,
                 **scan,
             }
         )
 
-    CATALOG.write_text("\n".join(json.dumps(doc, sort_keys=True) for doc in documents) + "\n", encoding="utf-8")
-    print(f"Synced {len(documents)} NoSQL media catalog documents to {CATALOG}.")
+    payload = "\n".join(json.dumps(doc, sort_keys=True) for doc in documents) + "\n"
+    tmp_path = CATALOG.with_suffix(".jsonl.tmp")
+    tmp_path.write_text(payload, encoding="utf-8")
+    os.replace(tmp_path, CATALOG)
+    print(f"Synced {len(documents)} NoSQL media catalog documents to {CATALOG} ({reused} reused, {len(documents) - reused} (re)scanned).")
 
 
 if __name__ == "__main__":

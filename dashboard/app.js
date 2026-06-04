@@ -480,7 +480,7 @@ function renderLeadership(rows) {
     <div class="trend-row">
       ${rows.map(row => `
         <button class="trend-card" data-incident="${escapeHtml(row.incident_code)}">
-          <strong>${row.incident_code}</strong>
+          <strong>${escapeHtml(row.incident_code)}</strong>
           <span>${escapeHtml(row.title)}</span>
           <div class="progress"><i style="width:${row.items ? Math.round((row.ready / row.items) * 100) : 0}%"></i></div>
           <small>${row.ready}/${row.items} ready</small>
@@ -521,14 +521,14 @@ function renderAi(rows, aiRecommendations, notifications) {
       severity(row.severity),
       human(row.type),
       human(row.owner),
-      row.count,
-      (row.sample_media_ids || []).join(", ") || "portfolio-level"
+      escapeHtml(row.count),
+      escapeHtml((row.sample_media_ids || []).join(", ") || "portfolio-level")
     ]))}
     ${table(["Media", "File", "Suggested AI use", "Required control"], rows.map(row => [
-      row.media_id,
-      row.file,
-      row.suggested_use,
-      row.required_control
+      escapeHtml(row.media_id),
+      escapeHtml(row.file),
+      escapeHtml(row.suggested_use),
+      escapeHtml(row.required_control)
     ]))}
     ${qaSplit(rows)}
   `;
@@ -585,12 +585,12 @@ function renderLegal(rows) {
     ${table(
     ["Media", "File", "Incident", "Verification", "Legal", "Custody", "Next legal action"],
     rows.map(row => [
-      row.media_id,
-      row.original_filename,
-      row.incident_code,
+      escapeHtml(row.media_id),
+      escapeHtml(row.original_filename),
+      escapeHtml(row.incident_code),
       status(row.verification_status),
       status(row.legal_status),
-      row.custody_events,
+      escapeHtml(row.custody_events),
       legalAction(row)
     ])
   )}
@@ -615,7 +615,7 @@ function renderMonitoring(rows) {
     <div class="monitor-card ${row.status}">
       <strong>${human(row.name)}</strong>
       <p>Value: ${formatMetric(row.value, row.unit)} | Threshold: ${formatMetric(row.threshold, row.unit)}</p>
-      <p>${row.message}</p>
+      <p>${escapeHtml(row.message)}</p>
     </div>
   `).join("")}</div>`;
 }
@@ -623,11 +623,11 @@ function renderMonitoring(rows) {
 function renderMedia(rows) {
   content.innerHTML = `<div class="media-grid">${rows.map(row => `
     <article class="media-card">
-      <img src="/${normalisePreviewPath(row.preview_path)}" alt="${escapeHtml(row.original_filename)} preview">
+      <img src="/${escapeHtml(normalisePreviewPath(row.preview_path))}" alt="${escapeHtml(row.original_filename)} preview">
       <div class="body">
         <strong>${escapeHtml(row.original_filename)}</strong>
-        <p>${row.incident_code} | ${human(row.media_type)}</p>
-        <p>${human(row.safe_status)} | ${row.detected_mime}</p>
+        <p>${escapeHtml(row.incident_code)} | ${human(row.media_type)}</p>
+        <p>${human(row.safe_status)} | ${escapeHtml(row.detected_mime)}</p>
       </div>
     </article>
   `).join("")}</div>`;
@@ -643,10 +643,10 @@ function renderEvidence(rows) {
     ${table(
     ["Media", "File", "Incident", "Type", "Class", "Verification", "Legal", "Custody", "Safety"],
     rows.map(row => [
-      row.media_id,
-      row.original_filename,
-      row.incident_code,
-      row.media_type,
+      escapeHtml(row.media_id),
+      escapeHtml(row.original_filename),
+      escapeHtml(row.incident_code),
+      escapeHtml(row.media_type),
       status(row.access_classification),
       status(row.verification_status),
       status(row.legal_status),
@@ -701,7 +701,7 @@ function timeline(titleText, rows) {
   return `<div class="timeline"><h3>${titleText}</h3>${rows.map((row, index) => `
     <button data-incident="${escapeHtml(row.incident_code)}">
       <strong>Q${(index % 4) + 1}</strong>
-      <span>${row.incident_code}</span>
+      <span>${escapeHtml(row.incident_code)}</span>
       <i style="height:${Math.max(18, row.items * 12)}px"></i>
     </button>
   `).join("")}</div>`;
@@ -763,15 +763,15 @@ function table(headers, rows) {
 }
 
 function status(value) {
-  return `<span class="${value}">${human(value)}</span>`;
+  return `<span class="${escapeHtml(value)}">${human(value)}</span>`;
 }
 
 function severity(value) {
-  return `<span class="severity ${value}">${human(value)}</span>`;
+  return `<span class="severity ${escapeHtml(value)}">${human(value)}</span>`;
 }
 
 function human(value) {
-  return String(value || "").replaceAll("_", " ");
+  return escapeHtml(String(value || "").replaceAll("_", " "));
 }
 
 function escapeHtml(value) {

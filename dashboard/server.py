@@ -6,10 +6,12 @@ from __future__ import annotations
 import os
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import urlsplit
 
 
 DASHBOARD_DIR = Path(__file__).resolve().parent
 ROOT = DASHBOARD_DIR.parent
+ALLOWED_PREFIXES = ("/dashboard/", "/media_store/")
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -20,11 +22,22 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
         self.send_header("Pragma", "no-cache")
         self.send_header("Expires", "0")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("Referrer-Policy", "no-referrer")
         super().end_headers()
 
+    def _is_allowed(self, path: str) -> bool:
+        return path == "/" or path.startswith(ALLOWED_PREFIXES)
+
     def do_GET(self):
-        if self.path == "/":
+        path = urlsplit(self.path).path
+        if path == "/":
             self.path = "/dashboard/index.html"
+            path = "/dashboard/index.html"
+        if not self._is_allowed(path):
+            self.send_error(404, "Not found")
+            return
         super().do_GET()
 
 

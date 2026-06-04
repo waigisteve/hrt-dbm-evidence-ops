@@ -16,6 +16,7 @@ http://127.0.0.1:8766
 
 2. Review the SQL files in `sql/`.
    - `schema.sql` defines a PostgreSQL relational model for investigative evidence.
+   - `roles_and_security.sql` adds least-privilege roles, append-only audit permissions, and RLS.
    - `sample_data.sql` adds a fictional dataset for practice.
    - `continuous_intake_simulation.sql` simulates a new batch of sensitive video, image, and field-note intake.
    - `analysis_queries.sql` contains practical queries for verification, chain of custody, migration validation, and evidentiary readiness.
@@ -25,6 +26,7 @@ Optional local run:
 ```bash
 createdb hrt_prep
 psql -d hrt_prep -f sql/schema.sql
+psql -d hrt_prep -f sql/roles_and_security.sql
 psql -d hrt_prep -f sql/sample_data.sql
 psql -d hrt_prep -f sql/continuous_intake_simulation.sql
 psql -d hrt_prep -f sql/analysis_queries.sql
@@ -70,7 +72,10 @@ psql -d hrt_prep -f sql/analysis_queries.sql
 14. Use `auth_rbac_implementation.md`.
    - Explain the local demo token/RBAC proof of concept and production identity-provider recommendation.
 
-15. Follow `practice_schedule.md`.
+15. Use `HARDENING.md`.
+   - Explain the security, reliability, and scalability hardening controls now enforced in code.
+
+16. Follow `practice_schedule.md`.
    - The schedule gives a 3-week route from research to final mock interview.
 
 ## Positioning Statement
@@ -91,6 +96,7 @@ The demo uses synthetic data, but the code is shaped like a production evidence 
 - `scripts/ai_recommendations.py` receives redacted reporting facts and monitoring results, detects anomalies, and generates stakeholder-specific recommendations without sending raw media or sensitive identifiers to an external model.
 - `scripts/notifications.py` composes Slack or SMTP email notifications for threshold-breaching anomalies. It is dry-run by default and uses environment variables for secrets.
 - `dashboard/app.js` presents the resulting read models through separate stakeholder tabs.
+- `HARDENING.md` documents code-level controls including least-privilege DB roles, RLS, append-only audit tables, atomic dashboard writes, dashboard server path allowlisting, XSS escaping, and secret-safe notification errors.
 
 Notification setup is documented in `live_dashboard_runbook.md`, including Slack incoming webhooks, Gmail app passwords, combined Slack plus Gmail delivery, and troubleshooting WSL/VPN SMTP TLS timeouts.
 

@@ -33,6 +33,7 @@ Production data-flow represented by this demo:
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 import time
@@ -45,6 +46,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from scripts.ai_recommendations import generate_ai_recommendations  # noqa: E402
+from scripts.db import psql_command  # noqa: E402
 from scripts.notifications import notify_threshold_anomalies  # noqa: E402
 
 OLAP_DIR = ROOT / "olap"
@@ -52,16 +54,16 @@ DASHBOARD_DIR = ROOT / "dashboard"
 OLAP_DB = OLAP_DIR / "hrt_olap.duckdb"
 SNAPSHOT_JSON = DASHBOARD_DIR / "data.json"
 MEDIA_CATALOG = ROOT / "media_store" / "catalog.jsonl"
-PG_DB = "hrt_prep"
 
 
-def run(command: list[str], input_text: str | None = None) -> str:
+def run(command: list[str], input_text: str | None = None, env: dict[str, str] | None = None) -> str:
     result = subprocess.run(
         command,
         input=input_text,
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
+        env=env,
     )
     if result.returncode != 0:
         detail = result.stderr.strip() or result.stdout.strip()
@@ -79,8 +81,9 @@ def psql_json(sql: str) -> list[dict[str, str]]:
     """
     clean_sql = sql.strip().rstrip(";")
     wrapped_sql = f"SELECT COALESCE(json_agg(query_rows), '[]'::json) FROM ({clean_sql}) query_rows;"
-    command = ["sudo", "-u", "postgres", "psql", "-d", PG_DB, "-t", "-A", "-q", "-c", wrapped_sql]
-    output = run(command)
+    base, env = psql_command("etl")
+    command = base + ["-t", "-A", "-q", "-c", wrapped_sql]
+    output = run(command, env=env)
     return json.loads(output.strip() or "[]")
 
 
@@ -137,14 +140,15 @@ def rebuild_olap(rows: list[dict[str, str]]) -> None:
     insert_sql = ""
     if body:
         insert_sql = f"""
-INSERT INTO evidence_fact VALUES
+INSERT INTO evidence_fact_new VALUES
 {body};
 """
 
     duckdb(
         f"""
-DROP TABLE IF EXISTS evidence_fact;
-CREATE TABLE evidence_fact (
+BEGIN TRANSACTION;
+DROP TABLE IF EXISTS evidence_fact_new;
+CREATE TABLE evidence_fact_new (
     media_id INTEGER,
     original_filename VARCHAR,
     incident_code VARCHAR,
@@ -163,6 +167,9 @@ CREATE TABLE evidence_fact (
     metadata_json VARCHAR
 );
 {insert_sql}
+DROP TABLE IF EXISTS evidence_fact;
+ALTER TABLE evidence_fact_new RENAME TO evidence_fact;
+COMMIT;
 """
     )
 
@@ -457,8 +464,8 @@ def main() -> None:
 SELECT
     m.media_id,
     m.original_filename,
-    i.incident_code,
-    i.title,
+    COALESCE(i.incident_code, 'UNASSIGNED') AS incident_code,
+    COALESCE(i.title, 'Unassigned media') AS title,
     m.media_type,
     m.access_classification,
     m.verification_status,
@@ -472,7 +479,7 @@ SELECT
     COALESCE(m.captured_at::text, '') AS captured_at,
     m.metadata_json::text AS metadata_json
 FROM media_files m
-JOIN incidents i ON i.incident_id = m.incident_id
+LEFT JOIN incidents i ON i.incident_id = m.incident_id
 LEFT JOIN custody_events c ON c.media_id = m.media_id
 LEFT JOIN verification_steps v ON v.media_id = m.media_id
 LEFT JOIN sources s ON s.source_id = m.source_id
@@ -507,7 +514,9 @@ ORDER BY m.media_id;
             "direction": "max",
         }
     )
-    SNAPSHOT_JSON.write_text(json.dumps(snapshot, indent=2), encoding="utf-8")
+    tmp_path = SNAPSHOT_JSON.with_suffix(".json.tmp")
+    tmp_path.write_text(json.dumps(snapshot, indent=2), encoding="utf-8")
+    os.replace(tmp_path, SNAPSHOT_JSON)
     print(f"Refreshed OLAP and dashboard snapshot with {len(rows)} evidence records.")
 
 
