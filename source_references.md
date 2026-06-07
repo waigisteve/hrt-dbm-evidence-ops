@@ -24,6 +24,17 @@ Use these references to ground interview answers in the employer's public model 
 - Syrian Archive methods and tools: https://syrianarchive.org/en/about/methods-and-tools/
   - Key relevance: preservation pipeline, source databases, verification, and standardised data formats.
 
+## Responsible AI and Synthetic Media
+
+- ICRC AI Policy: https://www.icrc.org/en/publication/building-responsible-humanitarian-approach-icrcs-policy-artificial-intelligence
+  - Key relevance: human-centred, humanitarian, multidisciplinary, and risk-governed AI adoption.
+- ICRC Handbook on Data Protection in Humanitarian Action: https://www.icrc.org/en/data-protection-humanitarian-action-handbook
+  - Key relevance: data protection risks from AI/ML, automated decision-making, and heavy personal-data use in humanitarian settings.
+- Berkeley Protocol PDF: https://humanrights.berkeley.edu/wp-content/uploads/2024/02/Berkeley-Protocol.pdf
+  - Key relevance: consistent methods, documentation, verification, chain of custody, and caution about what qualifies as evidence.
+- WITNESS Generative AI and synthetic media work: https://www.witness.org/gen-ai-site/
+  - Key relevance: trust in audiovisual witnessing, deepfakes, synthetic media, and recommendations for human-rights defenders.
+
 ## How to Use These in Interview Answers
 
 - Do not overclaim that HRT uses any specific public tool unless they confirm it.

@@ -27,7 +27,7 @@ const notes = {
   legal: "Items ready or waiting for legal review and controlled disclosure decisions.",
   partners: "Partner-facing process improvements for collection, transfer, and custody logging.",
   data_protection: "Restricted records, source risk, retention, access, and DPIA triggers.",
-  ai: "AI-assisted triage candidates with controls and human review requirements.",
+  ai: "Assistive GenAI pilot lanes, backlog acceleration, controls, and human review requirements.",
   media: "NoSQL media catalog with scanned synthetic sample objects.",
   monitoring: "Operational, security, performance, and data-skew monitoring."
 };
@@ -507,16 +507,25 @@ function renderAi(rows, aiRecommendations, notifications) {
   const summary = aiRecommendations.summary || {};
   const anomalies = aiRecommendations.anomalies || [];
   const recommendations = aiRecommendations.recommendations || [];
+  const pilotLanes = aiRecommendations.pilot_lanes || [];
+  const prohibitedUses = aiRecommendations.prohibited_uses || [];
+  const decisionLogFields = aiRecommendations.decision_log_fields || [];
   content.innerHTML = `
     <div class="executive-grid">
-      ${execCard("HITL queue", lowConfidence, "AI candidates awaiting human review")}
+      ${execCard("Assistive backlog", lowConfidence, "Candidates where AI may reduce manual preparation")}
       ${execCard("Transcription candidates", transcription, "Video/audio work queue")}
       ${execCard("Extraction candidates", extraction, "Document/entity work queue")}
       ${execCard("Detected anomalies", summary.anomaly_count || 0, "Structured facts passed to recommendation layer")}
     </div>
     ${aiControlNotice(aiRecommendations)}
+    ${pilotLaneBoard(pilotLanes)}
     ${recommendationBoard(recommendations)}
     ${notificationBoard(notifications)}
+    ${table(["Rejected/prohibited use"], prohibitedUses.map(row => [escapeHtml(row)]))}
+    <div class="notice">
+      <strong>AI decision log</strong>
+      <p>${escapeHtml(decisionLogFields.join(", ") || "Tool, version, reviewer, decision, correction, and final disposition should be logged.")}</p>
+    </div>
     ${table(["Severity", "Anomaly", "Owner", "Count", "Sample media"], anomalies.map(row => [
       severity(row.severity),
       human(row.type),
@@ -539,6 +548,16 @@ function aiControlNotice(aiRecommendations) {
     <strong>${human(aiRecommendations.mode || "local redacted recommendation engine")}</strong>
     <p>${escapeHtml(aiRecommendations.model_boundary || "Recommendations use redacted facts only.")}</p>
   </div>`;
+}
+
+function pilotLaneBoard(rows) {
+  if (!rows.length) return `<div class="empty">No GenAI pilot lanes configured for the current snapshot.</div>`;
+  return `${table(["Pilot lane", "Priority", "Purpose", "Required control"], rows.map(row => [
+    escapeHtml(row.name),
+    severity(row.priority),
+    escapeHtml(row.purpose),
+    escapeHtml(row.required_control)
+  ]))}`;
 }
 
 function recommendationBoard(rows) {

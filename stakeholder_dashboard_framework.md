@@ -13,7 +13,7 @@ Each dashboard is shaped around the decision-making urgency and cognitive load o
 | Legal | Analytical / compliance | Legal readiness, custody adequacy, restrictions, evidence-pack decisions | Precise tables, exact statuses, next legal action |
 | CSO Partners | Collaborative / restricted external | Safe feedback on submission quality and macro trends | Aggressive masking and aggregation |
 | Data Protection & Monitoring | Compliance / audit | Security, GDPR, retention, system and evidence health | Alert-driven cards and conditional status |
-| AI Review | Quality assurance | AI triage candidates, human-in-the-loop queue, controls | Clear split between AI suggestion and human decision |
+| AI Review | Quality assurance / workload acceleration | AI triage candidates, pilot lanes, human-in-the-loop queue, controls | Clear split between AI suggestion and human decision |
 
 ## Implemented Dashboard Behaviours
 
@@ -22,7 +22,7 @@ Each dashboard is shaped around the decision-making urgency and cognitive load o
 - Legal shows precise fields and a computed next legal action for each item.
 - CSO Partners receive masked area-level follow-up summaries rather than filenames, sources, hashes, or exact details.
 - Monitoring exposes security, performance, data-quality, and source-skew alerts.
-- AI Review shows the human-in-the-loop queue and keeps auto-approved outputs at zero by design.
+- AI Review shows assistive workload acceleration, pilot lanes, the human-in-the-loop queue, prohibited uses, and keeps auto-approved outputs at zero by design.
 
 ## One-Click to Workflow Rule
 

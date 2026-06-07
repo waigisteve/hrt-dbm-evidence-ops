@@ -79,7 +79,7 @@ Filtering applies consistently across KPIs, charts, and stakeholder views.
 
 ## AI Integration
 
-AI is positioned as controlled workflow assistance, not evidence verification.
+AI is positioned as controlled workflow assistance, not evidence verification. The dashboard should show where AI can accelerate work while keeping all evidentiary, legal, disclosure, and publication decisions with named humans.
 
 Supported demo uses:
 
@@ -89,6 +89,16 @@ Supported demo uses:
 - Similarity or duplicate detection.
 - Visual triage of synthetic image/video placeholders.
 - Summary drafting for human review.
+- Redacted anomaly summarisation for monitoring and leadership queues.
+- Legal-readiness blocker summaries for custody, verification, metadata, and restriction gaps.
+- Partner checklist drafting from approved policy and training text.
+
+Decision-log fields for a production pilot:
+
+- Tool name and model/version.
+- Prompt class and approved workflow lane.
+- Input sensitivity and redaction status.
+- Reviewer, decision, correction, final disposition, and date.
 
 Controls:
 

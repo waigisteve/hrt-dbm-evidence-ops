@@ -51,8 +51,90 @@ def generate_ai_recommendations(
             "recommendation_count": len(recommendations),
             "stakeholders": sorted({item["stakeholder"] for item in recommendations}),
         },
+        "pilot_lanes": pilot_lanes(anomalies),
+        "decision_log_fields": [
+            "tool_name",
+            "model_or_rule_version",
+            "prompt_class",
+            "input_sensitivity",
+            "redaction_status",
+            "reviewer",
+            "reviewer_decision",
+            "correction",
+            "final_disposition",
+            "decision_date",
+        ],
+        "prohibited_uses": [
+            "automated verification conclusions",
+            "legal conclusions",
+            "perpetrator or source identification",
+            "raw restricted media in unapproved external SaaS",
+            "publication approval without human review",
+        ],
+        "scorecard": [
+            "velocity_gain",
+            "accuracy",
+            "reviewer_correction_rate",
+            "data_protection_risk",
+            "evidentiary_risk",
+            "cost",
+            "adoption_impact",
+        ],
         "anomalies": anomalies,
         "recommendations": recommendations,
+    }
+
+
+def pilot_lanes(anomalies: list[dict[str, Any]]) -> list[dict[str, str]]:
+    """Return approved GenAI pilot lanes for the review dashboard."""
+    anomaly_types = {item["type"] for item in anomalies}
+    lanes = [
+        lane(
+            "Transcription and translation",
+            "Internal triage for video/audio backlogs",
+            "Local/private processing for restricted material; reviewer correction required.",
+        ),
+        lane(
+            "Metadata extraction",
+            "Draft fields from redacted notes or transcripts",
+            "Reviewer accepts, corrects, or rejects each field.",
+        ),
+        lane(
+            "Duplicate/similarity detection",
+            "Cluster likely repeated media or event descriptions",
+            "Preserve originals and require human match confirmation.",
+        ),
+        lane(
+            "Redacted anomaly summarisation",
+            "Summarise monitoring facts for stakeholder queues",
+            "Use redacted facts only; no source names, precise locations, hashes, or raw media.",
+        ),
+        lane(
+            "Legal-readiness blockers",
+            "Summarise custody, verification, metadata, and restriction gaps",
+            "Legal team remains the decision owner.",
+        ),
+        lane(
+            "Partner checklist drafting",
+            "Draft safe collection and transfer guidance from approved text",
+            "Programme or data-protection reviewer approves before sharing.",
+        ),
+    ]
+    if "custody_gap" in anomaly_types or "metadata_gap" in anomaly_types:
+        lanes[1]["priority"] = HIGH
+    if "low_legal_ready_yield" in anomaly_types:
+        lanes[4]["priority"] = HIGH
+    if "monitoring_alert" in anomaly_types:
+        lanes[3]["priority"] = MEDIUM
+    return lanes
+
+
+def lane(name: str, purpose: str, required_control: str, priority: str = LOW) -> dict[str, str]:
+    return {
+        "name": name,
+        "purpose": purpose,
+        "required_control": required_control,
+        "priority": priority,
     }
 
 

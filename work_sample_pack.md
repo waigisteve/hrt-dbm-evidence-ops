@@ -141,6 +141,48 @@ Potentially useful AI-supported tasks:
 
 AI outputs must be treated as leads or drafting aids, not evidence findings. Human review, source protection, auditability, and data protection review are mandatory.
 
+### GenAI Workflow Integration
+
+GenAI should improve velocity by reducing manual preparation work and surfacing decision queues earlier. It should not change the standard for verification, legal use, or publication.
+
+| Process stage | Assistive GenAI use | Human decision retained |
+| --- | --- | --- |
+| Intake | Draft intake summaries from approved fields; flag missing required metadata | Accept, correct, or reject intake record |
+| Preservation | Suggest duplicate/similar media candidates from hashes, transcripts, or descriptions | Confirm duplicate relationship and preserve originals |
+| Verification support | Transcribe, translate, extract entities from redacted notes, and suggest verification next steps | Decide what is verified, disputed, or unusable |
+| Analysis | Cluster incidents, themes, locations, actors, and chronology for analyst review | Approve analytical findings and limitations |
+| Legal review | Summarise legal-readiness blockers such as custody, verification, metadata, and restrictions | Decide legal readiness and disclosure limits |
+| Partner feedback | Draft collection checklists and safe submission feedback from approved policy text | Approve partner-facing guidance |
+| Monitoring | Summarise redacted anomaly facts and route recommendations to stakeholder queues | Prioritise resources and close actions |
+| Training | Draft role-specific training prompts, scenarios, and refreshers from approved procedures | Approve training content before release |
+
+### GenAI Pilot Lanes
+
+| Pilot lane | Velocity benefit | Minimum control |
+| --- | --- | --- |
+| Transcription and translation for internal triage | Faster review of video/audio backlogs | Local/private processing for restricted material; reviewer correction |
+| Metadata extraction from notes/transcripts | Faster intake completion and searchability | Redaction where possible; field-level human acceptance |
+| Duplicate/similarity detection | Less repeated review of the same event or object | Preserve originals; confirm match before linking |
+| Redacted anomaly summarisation | Faster leadership, monitoring, and operations decisions | Use redacted facts only; no raw identifiers |
+| Legal-readiness blocker summaries | Clearer work queues for custody, verification, and restrictions | Legal team remains decision owner |
+| Partner training/checklist drafting | Faster capacity building and safer collection practice | Generate only from approved policy/runbook text |
+
+### AI Decision Log
+
+Every AI-assisted output should leave a reviewable record: tool name, model or rule version, prompt class, input sensitivity, redaction status, reviewer, reviewer decision, correction made, final disposition, and date. This makes AI use auditable without treating the model output as evidence.
+
+### Pilot Evaluation Scorecard
+
+| Measure | Why it matters |
+| --- | --- |
+| Velocity gain | Confirms the pilot reduces backlog or review time |
+| Accuracy | Measures agreement with ground truth or reviewer assessment |
+| Reviewer correction rate | Shows whether AI is saving work or creating rework |
+| Data protection risk | Captures sensitivity, vendor exposure, retention, and access risk |
+| Evidentiary risk | Confirms outputs remain separate from findings and legal decisions |
+| Cost | Compares model/vendor cost against operational value |
+| Adoption impact | Checks whether staff can use the workflow safely and consistently |
+
 ### AI Risk Framework
 
 | Risk | Control |
